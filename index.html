@@ -36,7 +36,7 @@
     activeTab: 'core',
 
     // Firebase Core Initialization Setup using your exact new project keys
-    init() {
+        init() {
       const firebaseConfig = {
         apiKey: 'AIzaSyCSUbwjYdxdGPUIjN_VYvcCcc6jLqflF5c',
         authDomain: 'upsc-web-1daf2.firebaseapp.com',
@@ -46,29 +46,42 @@
         appId: '1:986435590514:web:784d4074a43b042890e5eb'
       };
 
-      // Initialize Firebase securely without blockers
       firebase.initializeApp(firebaseConfig);
         
-      // Listen to global login/logout state triggers
+      // Read the incoming Google Redirect data tokens immediately upon page reload
+      firebase.auth().getRedirectResult()
+        .then((result) => {
+          if (result.user) {
+            this.handleUserSession(result.user);
+          }
+        })
+        .catch(err => alert('Redirect Error: ' + err.message));
+
+      // Listen to ongoing authentication state shifts smoothly
       firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-          if (user.email.toLowerCase() === this.allowedUserEmail.toLowerCase()) {
-            this.currentUser = user;
-            this.userAuthenticated = true;
-            this.accessDenied = false;
-            this.loadLocalData();
-          } else {
-            // Sign out immediately if email is unapproved
-            this.accessDenied = true;
-            this.userAuthenticated = false;
-            firebase.auth().signOut();
-          }
+          this.handleUserSession(user);
         } else {
           this.userAuthenticated = false;
           this.currentUser = null;
         }
       });
     },
+
+    // Secure helper logic block to verify your email profile
+    handleUserSession(user) {
+      if (user.email.toLowerCase() === this.allowedUserEmail.toLowerCase()) {
+        this.currentUser = user;
+        this.userAuthenticated = true;
+        this.accessDenied = false;
+        this.loadLocalData();
+      } else {
+        this.accessDenied = true;
+        this.userAuthenticated = false;
+        firebase.auth().signOut();
+      }
+    },
+
 
     loginWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
