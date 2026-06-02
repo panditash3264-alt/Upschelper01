@@ -70,9 +70,9 @@
       });
     },
 
-    loginWithRedirect {
+    loginWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithPopup(provider)
+      firebase.auth().signInWithRedirect(provider)
         .catch(err => alert('Authentication Failed: ' + err.message));
     },
 
