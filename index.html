@@ -1,267 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UPSC Mission Control Center v7.1</title>
-  
-  <!-- Tailwind CSS Engine -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Alpine.js Core Framework -->
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  
-  <style>
-    [x-cloak] { display: none !important; }
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: #020617; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-    
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      filter: invert(1);
-      cursor: pointer;
-    }
-
-    .goog-te-gadget-simple {
-      background-color: #0f172a !important;
-      border: 1px solid #1e293b !important;
-      padding: 4px 8px !important;
-      border-radius: 0.5rem !important;
-      display: inline-flex !important;
-      align-items: center !important;
-    }
-    .goog-te-gadget-simple .goog-te-menu-value {
-      color: #9ca3af !important;
-      font-size: 11px !important;
-      font-family: monospace !important;
-    }
-    .goog-te-gadget-icon, .goog-te-banner-frame { display: none !important; }
-    body { top: 0px !important; }
-  </style>
-
-  <script defer type="text/javascript">
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({
-        pageLanguage: 'en',
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-      }, 'google_translate_element');
-    }
-  </script>
-  <script defer type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5; --primary-hover: #4338ca; --primary-light: #e0e7ff;
+            --bg-body: #f8fafc; --surface: #ffffff; --text-main: #0f172a; --text-muted: #64748b;
+            --border: #e2e8f0; --accent: #10b981; --danger: #ef4444; --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-body); color: var(--text-main); padding: 2rem 1rem; display: flex; justify-content: center; }
+        .container { max-width: 1100px; width: 100%; }
+        
+        /* Navigation */
+        header { text-align: center; margin-bottom: 2rem; }
+        h1 { font-size: 2.2rem; margin-bottom: 1rem; }
+        h1 span { color: var(--primary); }
+        .nav-menu { display: flex; gap: 0.5rem; justify-content: center; background: var(--surface); padding: 0.5rem; border-radius: 12px; border: 1px solid var(--border); flex-wrap: wrap; }
+        .nav-btn { background: transparent; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); }
+        .nav-btn.active { background: var(--primary); color: white; }
+        
+        /* View Management */
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeUp 0.3s ease-out; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Cards & Inputs */
+        .card { background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem; }
+        .card h2 { font-size: 1.25rem; margin-bottom: 1.2rem; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+        input, select, textarea { flex: 1; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+        button.action-btn { padding: 0.8rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .delete-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
+        .delete-btn:hover { color: var(--danger); }
+        
+        /* Layouts */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        .list-item { padding: 1rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.8rem; border-left: 4px solid var(--primary); }
+        
+        /* Badges & Timers */
+        .badge { background: var(--primary-light); color: var(--primary-hover); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .timer-box { background: var(--primary-light); padding: 1rem; border-radius: 8px; text-align: center; margin-bottom: 1rem; }
+        .time-display { font-size: 1.8rem; font-weight: 700; color: var(--primary); }
+        
+        /* Syllabus Accordion */
+        .acc-btn { width: 100%; text-align: left; padding: 1rem; background: transparent; border: none; font-weight: 600; cursor: pointer; border-bottom: 1px solid var(--border); }
+        .acc-content { display: none; padding: 1rem; background: var(--bg-body); }
+        .acc-content.show { display: block; }
+        .topic-list li { display: flex; align-items: center; gap: 10px; padding: 0.5rem 0; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen font-sans antialiased selection:bg-indigo-500 selection:text-white">
+<body>
 
-  <!-- MAIN APP WRAPPER -->
-  <div x-cloak x-data="missionConsole()" class="w-full min-h-screen">
-      
-    <!-- SECURITY GATEKEEPER PASS PANEL -->
-    <div x-show="!userAuthenticated" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
-      <div class="max-w-sm w-full bg-slate-900/50 backdrop-blur-xl border border-slate-800 p-8 rounded-3xl shadow-2xl text-center space-y-6">
-        <div class="h-16 w-16 bg-indigo-500 rounded-2xl flex items-center justify-center font-bold text-3xl text-white mx-auto shadow-[0_0_30px_rgba(99,102,241,0.3)]">U</div>
-        <div class="space-y-1">
-          <h2 class="text-xl font-bold text-white tracking-tight">Console Secured</h2>
-          <p class="text-xs text-slate-400 font-medium">UPSC Local Database Access</p>
+<div class="container">
+    <header>
+        <h1>UPSC <span>Command Center</span></h1>
+        <div class="nav-menu">
+            <button class="nav-btn active" onclick="switchTab('tab-dash', this)">Dashboard</button>
+            <button class="nav-btn" onclick="switchTab('tab-syl', this)">Syllabus</button>
+            <button class="nav-btn" onclick="switchTab('tab-ca', this)">Current Affairs</button>
+            <button class="nav-btn" onclick="switchTab('tab-mock', this)">Mocks</button>
+            <button class="nav-btn" onclick="switchTab('tab-rev', this)">Revision</button>
         </div>
-        <div class="space-y-4">
-          <input type="password" maxlength="4" x-model="inputPin" @keydown.enter="verifyAccessPin()" placeholder="••••" class="w-full bg-slate-950/50 border border-slate-800 rounded-2xl p-4 text-center text-xl tracking-[0.5em] text-indigo-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner">
-          <div x-show="accessDenied" x-transition class="bg-rose-950/30 border border-rose-900/50 text-rose-400 p-3 rounded-xl text-xs font-medium backdrop-blur-sm">🛑 Incorrect Authorization Pin.</div>
-          <button @click="verifyAccessPin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-3.5 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all shadow-lg hover:shadow-indigo-500/25">Initialize System</button>
+    </header>
+
+    <!-- DASHBOARD -->
+    <div id="tab-dash" class="view-section active">
+        <div class="grid-2">
+            <div class="card">
+                <h2>⏳ Exams</h2>
+                <div class="timer-box"><div id="t-pre">Loading...</div><small>Prelims</small></div>
+                <div class="timer-box"><div id="t-main">Loading...</div><small>Mains</small></div>
+            </div>
+            <div class="card">
+                <h2>🎯 Daily Targets</h2>
+                <div class="input-group">
+                    <input type="text" id="task-in" placeholder="New target...">
+                    <button class="action-btn" onclick="addTask()">Add</button>
+                </div>
+                <div id="task-list"></div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- AUTHENTICATED COMMAND CENTER EXECUTION FRAME -->
-    <div x-show="userAuthenticated" class="min-h-screen flex flex-col relative">
-      
-      <!-- SLEEK TOP HEADER -->
-      <header class="bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80 px-5 py-3.5 sticky top-0 z-30 flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <button @click="sidebarOpen = true" class="text-slate-400 hover:text-white transition-colors focus:outline-none">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          </button>
-          <div>
-            <h1 class="text-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Mission Control v7.1</h1>
-            <p class="text-[10px] text-slate-500 font-mono font-medium" x-text="formattedDate"></p>
-          </div>
+    <!-- SYLLABUS -->
+    <div id="tab-syl" class="view-section">
+        <div class="card">
+            <h2>📚 GS Syllabus Tracker <span id="syl-prog" style="float:right; color:var(--primary);">0%</span></h2>
+            <button class="acc-btn" onclick="toggleAcc(this)">GS 1: History, Culture & Geo ▼</button>
+            <div class="acc-content show">
+                <ul class="topic-list" id="syl-1">
+                    <li><input type="checkbox" id="g1a" onchange="saveSyl()"><label>Indian Culture & Art</label></li>
+                    <li><input type="checkbox" id="g1b" onchange="saveSyl()"><label>Modern Indian History</label></li>
+                    <li><input type="checkbox" id="g1c" onchange="saveSyl()"><label>World Geography</label></li>
+                </ul>
+            </div>
+            <button class="acc-btn" onclick="toggleAcc(this)">GS 2: Polity & Governance ▼</button>
+            <div class="acc-content">
+                <ul class="topic-list" id="syl-2">
+                    <li><input type="checkbox" id="g2a" onchange="saveSyl()"><label>Constitution & Basic Structure</label></li>
+                    <li><input type="checkbox" id="g2b" onchange="saveSyl()"><label>Parliament & Legislature</label></li>
+                    <li><input type="checkbox" id="g2c" onchange="saveSyl()"><label>International Relations</label></li>
+                </ul>
+            </div>
+            <button class="acc-btn" onclick="toggleAcc(this)">GS 3: Economy & Env ▼</button>
+            <div class="acc-content">
+                <ul class="topic-list" id="syl-3">
+                    <li><input type="checkbox" id="g3a" onchange="saveSyl()"><label>Indian Economy</label></li>
+                    <li><input type="checkbox" id="g3b" onchange="saveSyl()"><label>Environment & Disaster Mgmt</label></li>
+                    <li><input type="checkbox" id="g3c" onchange="saveSyl()"><label>Science & Tech</label></li>
+                </ul>
+            </div>
         </div>
-        <div class="flex items-center space-x-3">
-          <div id="google_translate_element" class="scale-90 origin-right hidden sm:block opacity-80 hover:opacity-100 transition-opacity"></div>
-          <button @click="logoutSession()" class="text-[10px] font-mono border border-slate-800 bg-slate-900 text-slate-400 px-3 py-1.5 rounded-lg hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-900/50 transition-all">LOCK</button>
+    </div>
+
+    <!-- CURRENT AFFAIRS -->
+    <div id="tab-ca" class="view-section">
+        <div class="card">
+            <h2>📰 Log Current Affair</h2>
+            <div class="input-group">
+                <input type="text" id="ca-title" placeholder="Headline">
+                <select id="ca-paper" style="flex:0.3"><option>GS1</option><option>GS2</option><option>GS3</option><option>GS4</option></select>
+            </div>
+            <div class="input-group">
+                <input type="text" id="ca-tags" placeholder="Tags (e.g. #Polity)">
+                <button class="action-btn" onclick="addCA()">Save Log</button>
+            </div>
         </div>
-      </header>
+        <div id="ca-list"></div>
+    </div>
 
-      <!-- GLASSMORPHIC SIDEBAR DRAWER -->
-      <div x-show="sidebarOpen" class="fixed inset-0 z-50 flex" x-transition>
-        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" @click="sidebarOpen = false"></div>
-        <div class="relative w-72 max-w-xs bg-slate-900 border-r border-slate-800 h-full flex flex-col p-5 space-y-6 shadow-2xl" @click.stop>
-          <div class="flex items-center justify-between pb-4 border-b border-slate-800">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">System Nodes</span>
-            <button @click="sidebarOpen = false" class="text-slate-500 hover:text-white bg-slate-800/50 p-1.5 rounded-md transition-colors">✕</button>
-          </div>
-          <nav class="flex-1 space-y-2 overflow-y-auto pr-2">
-            <template x-for="item in navItems">
-              <button @click="activeTab = item.id; sidebarOpen = false" 
-                      :class="activeTab === item.id ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/50' : 'text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200'" 
-                      class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-semibold text-left transition-all border">
-                <span x-text="item.icon" class="text-base drop-shadow-md"></span> 
-                <span x-text="item.label"></span>
-              </button>
-            </template>
-          </nav>
+    <!-- MOCKS -->
+    <div id="tab-mock" class="view-section">
+        <div class="card">
+            <h2>📝 Log Mock Test</h2>
+            <div class="input-group">
+                <input type="text" id="m-name" placeholder="Test Name">
+                <select id="m-type" style="flex:0.4"><option>Prelims</option><option>Mains</option></select>
+                <input type="number" id="m-score" placeholder="Score" style="flex:0.3">
+            </div>
+            <div class="input-group">
+                <textarea id="m-journal" placeholder="Mistakes made..."></textarea>
+                <button class="action-btn" onclick="addMock()">Save</button>
+            </div>
         </div>
-      </div>
+        <div id="mock-list"></div>
+    </div>
 
-      <!-- MAIN INTERFACE CORE DESK -->
-      <main class="flex-1 p-4 md:p-6 max-w-5xl w-full mx-auto space-y-6 pb-24">
-        
-        <!-- TAB 1: INTEGRATED CORE DASHBOARD MATRIX -->
-        <div x-show="activeTab === 'dashboard'" x-transition class="space-y-6">
-          
-          <!-- Hero Section -->
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-2 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-900 to-slate-900 border border-indigo-500/20 p-6 rounded-3xl shadow-xl flex flex-col justify-center relative overflow-hidden">
-              <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
-              <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest font-mono mb-3 block">Target: CSE Prelims (23 May 2027)</span>
-              <div class="flex items-center space-x-6">
-                <div class="flex flex-col"><span class="text-5xl font-black text-white tracking-tighter" x-text="countdown.days"></span><span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Days</span></div>
-                <span class="text-3xl text-slate-700 font-light mb-4">:</span>
-                <div class="flex flex-col"><span class="text-5xl font-black text-slate-300 tracking-tighter" x-text="countdown.hours"></span><span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Hours</span></div>
-              </div>
+    <!-- REVISION -->
+    <div id="tab-rev" class="view-section">
+        <div class="card">
+            <h2>🧠 Schedule Revision</h2>
+            <div class="input-group">
+                <input type="text" id="r-topic" placeholder="Topic finished today">
+                <input type="date" id="r-date">
+                <button class="action-btn" onclick="addRev()">Schedule</button>
             </div>
-            
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between">
-              <p class="text-sm font-medium leading-relaxed text-cyan-100/80 italic border-l-2 border-cyan-500/50 pl-4 py-1" x-text="'“' + currentQuote + '”'"></p>
-              <div class="mt-6 flex space-x-2">
-                <button @click="activeTab = 'calendar_tasks'" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold uppercase tracking-wider py-2.5 rounded-xl transition-colors">Add Task</button>
-                <button @click="activeTab = 'spaced_repetition'" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-wider py-2.5 rounded-xl transition-colors">Revise</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Dynamic Today View -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-slate-900/50 border border-slate-800/80 p-5 rounded-3xl backdrop-blur-sm">
-              <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xs font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> Today's Targets</h3>
-                <span class="text-[10px] font-mono bg-slate-800 text-slate-400 px-2 py-1 rounded-md" x-text="getTodayTasks().length + ' Due'"></span>
-              </div>
-              <div class="space-y-2.5 max-h-64 overflow-y-auto custom-scrollbar pr-1">
-                <template x-if="getTodayTasks().length === 0">
-                  <div class="text-center py-6 text-slate-500 text-xs font-mono">No tasks scheduled for today.</div>
-                </template>
-                <template x-for="t in getTodayTasks()" :key="t.id">
-                  <div class="group flex items-center justify-between bg-slate-950/50 p-3 rounded-2xl border border-slate-800/50 hover:border-slate-700 transition-colors">
-                    <div class="flex items-center space-x-3 overflow-hidden">
-                      <div class="relative flex items-center justify-center shrink-0">
-                        <input type="checkbox" x-model="t.completed" @change="saveLocalData()" class="peer appearance-none w-5 h-5 border-2 border-slate-700 rounded-md checked:bg-emerald-500 checked:border-emerald-500 cursor-pointer transition-colors">
-                        <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                      </div>
-                      <div class="flex flex-col truncate">
-                        <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-wider mb-0.5" x-text="t.subject"></span>
-                        <span :class="t.completed ? 'line-through text-slate-600' : 'text-slate-200'" class="text-xs font-medium truncate transition-all" x-text="t.text"></span>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-
-            <!-- SRS Revisions Due Today -->
-            <div class="bg-slate-900/50 border border-slate-800/80 p-5 rounded-3xl backdrop-blur-sm">
-              <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xs font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span> Revisions Due</h3>
-                <span class="text-[10px] font-mono bg-slate-800 text-slate-400 px-2 py-1 rounded-md" x-text="getDueRevisions().length + ' Pending'"></span>
-              </div>
-              <div class="space-y-2.5 max-h-64 overflow-y-auto custom-scrollbar pr-1">
-                <template x-if="getDueRevisions().length === 0">
-                  <div class="text-center py-6 text-slate-500 text-xs font-mono">Zero revision debt. Perfect focus.</div>
-                </template>
-                <template x-for="r in getDueRevisions()" :key="r.id">
-                  <div class="flex items-center justify-between bg-amber-950/10 p-3 rounded-2xl border border-amber-900/20">
-                    <div class="flex flex-col truncate pr-3">
-                      <div class="flex items-center gap-2 mb-0.5">
-                        <span class="text-[9px] font-bold text-amber-500 uppercase tracking-wider" x-text="r.subject"></span>
-                        <span class="text-[8px] px-1.5 py-0.5 bg-amber-900/50 text-amber-300 rounded font-mono" x-text="'Lvl ' + r.stage"></span>
-                      </div>
-                      <span class="text-xs font-medium text-slate-200 truncate" x-text="r.topic"></span>
-                    </div>
-                    <button @click="completeRevision(r)" class="shrink-0 bg-amber-600/20 hover:bg-amber-500 text-amber-400 hover:text-white border border-amber-500/30 text-[10px] font-bold px-3 py-1.5 rounded-lg transition-all">Review</button>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </div>
         </div>
+        <div id="rev-list"></div>
+    </div>
+</div>
 
-        <!-- TAB 2: CALENDAR-BASED TASKS -->
-        <div x-show="activeTab === 'calendar_tasks'" x-transition class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-6">
-          <div class="border-b border-slate-800 pb-4 flex justify-between items-end">
-            <div>
-              <h2 class="text-sm font-bold text-indigo-400 uppercase tracking-widest font-mono">Calendar Task Router</h2>
-              <p class="text-[11px] text-slate-500 mt-1">Schedule syllabus modules to specific dates.</p>
-            </div>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-3 bg-slate-950/50 p-4 rounded-2xl border border-slate-800/80">
-            <div class="md:col-span-5">
-              <label class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Task Definition</label>
-              <input type="text" x-model="newTaskText" @keydown.enter="addTask()" placeholder="E.g., Complete Modern History Ch. 4..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
-            </div>
-            <div class="md:col-span-3">
-              <label class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Subject Matrix</label>
-              <select x-model="newTaskSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-indigo-300 font-semibold focus:outline-none focus:border-indigo-500 transition-all">
-                <template x-for="subj in subjects" :key="subj.name"><option :value="subj.name" x-text="subj.name"></option></template>
-              </select>
-            </div>
-            <div class="md:col-span-3">
-              <label class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Schedule Date</label>
-              <input type="date" x-model="newTaskDate" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 transition-all">
-            </div>
-            <div class="md:col-span-1 flex items-end">
-              <button @click="addTask()" class="w-full bg-indigo-600 text-white text-xs p-2.5 rounded-xl font-bold uppercase transition hover:bg-indigo-500 h-[38px] shadow-lg shadow-indigo-500/20">+</button>
-            </div>
-          </div>
+<script>
+    // Utility for LocalStorage (prevents repeated code)
+    const store = {
+        get: (k, def) => JSON.parse(localStorage.getItem(k)) || def,
+        set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
+    };
 
-          <div class="space-y-4 pt-2">
-            <ul class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-              <template x-for="task in sortedTasks()" :key="task.id">
-                <li class="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-950/40 p-3 rounded-2xl border border-slate-800/80 text-xs gap-3 hover:bg-slate-900 transition-colors">
-                  <div class="flex items-center space-x-3 flex-1 min-w-0">
-                    <input type="checkbox" x-model="task.completed" @change="saveLocalData()" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-indigo-500 cursor-pointer">
-                    <div class="flex flex-col truncate">
-                      <div class="flex items-center gap-2 mb-0.5">
-                        <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest" x-text="task.subject"></span>
-                        <span :class="task.date === getTodayStr() ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : (task.date < getTodayStr() && !task.completed ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-slate-800 text-slate-400 border-slate-700')" class="text-[8px] font-mono px-1.5 py-0.5 rounded border" x-text="formatDateShort(task.date)"></span>
-                      </div>
-                      <span :class="task.completed ? 'line-through text-slate-600' : 'text-slate-200'" class="font-medium truncate text-sm" x-text="task.text"></span>
-                    </div>
-                  </div>
-                  <button @click="tasks = tasks.filter(t=>t.id!==task.id); saveLocalData();" class="text-slate-600 hover:text-rose-400 bg-slate-900 hover:bg-rose-950 p-2 rounded-lg transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                  </button>
-                </li>
-              </template>
-            </ul>
-          </div>
-        </div>
+    // Tab Switching
+    function switchTab(id, btn) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
 
-        <!-- TAB 3: SPACED REPETITION SYSTEM (SRS) -->
-        <div x-show="activeTab === 'spaced_repetition'" x-transition class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-6">
-          <div class="border-b border-slate-800 pb-4">
-            <h2 class="text-sm font-bold text-amber-400 uppercase tracking-widest font-mono">Algorithmic Spaced Repetition</h2>
-            <p class="text-[11px] text-slate-500 mt-1">Schedules retention cycles automatically (+1d, +3d, +7d, +14d, +30d).</p>
-          </div>
+    // 1. Timers
+    const examDates = { pre: new Date("May 30, 2027").getTime(), main: new Date("Sep 15, 2027").getTime() };
+    setInterval(() => {
+        const now = new Date().getTime();
+        ['pre', 'main'].forEach(key => {
+            const diff = examDates[key] - now;
+            document.getElementById(`t-${key}`).innerText = diff < 0 ? "Exam Day!" : 
+                `${Math.floor(diff/(1000*60*60*24))}d ${Math.floor((diff/(1000*60*60))%24)}h`;
+        });
+    }, 1000);
 
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950/50 p-4 rounded-2xl border border-slate-800/80">
-            <div class="md:col-span-2">
-              <label class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Knowledge Topic</label>
-              <input type="text" x-model="newRevTopic" @keydown.enter="addRevision()" placeholder="E.g., Article 21 Nuances..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all">
+    // 2. Daily Targets
+    let tasks = store.get('up_tasks', []);
+    const renderTasks = () => {
+        document.getElementById('task-list').innerHTML = tasks.map((t, i) => `
+            <div class="list-item" style="display:flex; justify-content:space-between; ${t.done ? 'opacity:0.5; text-decoration:line-through;' : ''}">
+                <span onclick="tasks[${i}].done=!tasks[${i}].done; store.set('up_tasks', tasks); renderTasks()" style="cursor:pointer; flex:1;">${t.txt}</span>
+                <button class="delete-btn" onclick="tasks.splice(${i},1); store.set('up_tasks', tasks); renderTasks()">✖</button>
             </div>
-            <div class="md:col-span-1">
-              <label class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Domain</label>
-              <select x-model="newRevSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-amber-300 font-semibold focus:outline-none focus:border-amber-500 transition-all">
-                <template x-for="subj in subjects" :key="subj.name"><option :value="subj.name" x-text="subj.name"></option></template>
-              </select>
+        `).join('');
+    };
+    function addTask() {
+        const val = document.getElementById('task-in').value.trim();
+        if(val) { tasks.push({txt: val, done: false}); store.set('up_tasks', tasks); document.getElementById('task-in').value=''; renderTasks(); }
+    }
+    renderTasks();
+
+    // 3. Syllabus
+    function toggleAcc(btn) { btn.nextElementSibling.classList.toggle('show'); }
+    const sylState = store.get('up_syl', {});
+    document.querySelectorAll('.topic-list input').forEach(chk => {
+        if(sylState[chk.id]) chk.checked = true;
+    });
+    function saveSyl() {
+        const checks = document.querySelectorAll('.topic-list input');
+        let done = 0;
+        checks.forEach(c => { sylState[c.id] = c.checked; if(c.checked) done++; });
+        store.set('up_syl', sylState);
+        document.getElementById('syl-prog').innerText = Math.round((done / checks.length) * 100) + '%';
+    }
+    saveSyl(); // init percentage
+
+    // 4. Current Affairs
+    let cas = store.get('up_cas', []);
+    const renderCAs = () => {
+        document.getElementById('ca-list').innerHTML = cas.map((ca, i) => `
+            <div class="card list-item">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong><span class="badge">${ca.p}</span> ${ca.t}</strong>
+                    <button class="delete-btn" onclick="cas.splice(${i},1); store.set('up_cas', cas); renderCAs()">✖</button>
+                </div>
+                <small style="color:var(--text-muted)">${ca.tags}</small>
             </div>
-            <div class="md:col-span-1 flex items-end">
-              <button @click="addRevision()" class="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs p-2.5 rounded-xl font-bold uppercase transiti
+        `).reverse().join('');
+    };
+    function addCA() {
+        const t = document.getElementById('ca-title').value, p = document.getElementById('ca-paper').value, tags = document.getElementById('ca-tags').value;
+        if(t) { cas.push({t, p, tags}); store.set('up_cas', cas); document.getElementById('ca-title').value=''; document.getElementById('ca-tags').value=''; renderCAs(); }
+    }
+    renderCAs();
+
+    // 5. Mocks
+    let mocks = store.get('up_mocks', []);
+    const renderMocks = () => {
+        document.getElementById('mock-list').innerHTML = mocks.map((m, i) => `
+            <div class="card list-item" style="border-left-color:var(--warning)">
+                <div style="display:flex; justify-content:space-between;">
+                    <strong><span class="badge">${m.type}</span> ${m.name}</strong>
+                    <span>Score: ${m.score} <button class="delete-btn" onclick="mocks.splice(${i},1); store.set('up_mocks', mocks); renderMocks()">✖</button></span>
+                </div>
+                <p style="margin-top:10px; font-size:0.9rem;">${m.j}</p>
+            </div>
+        `).reverse().join('');
+    };
+    function addMock() {
+        const n = document.getElementById('m-name').value, t = document.getElementById('m-type').value, s = document.getElementById('m-score').value, j = document.getElementById('m-journal').value;
+        if(n) { mocks.push({name:n, type:t, score:s, j}); store.set('up_mocks', mocks); document.getElementById('m-name').value=''; document.getElementById('m-score').value=''; document.getElementById('m-journal').value=''; renderMocks(); }
+    }
+    renderMocks();
+
+    // 6. Revision
+    let revs = store.get('up_revs', []);
+    document.getElementById('r-date').valueAsDate = new Date();
+    const addDays = (d, days) => { let nd = new Date(d); nd.setDate(nd.getDate() + days); return nd.toLocaleDateString(); };
+    
+    const renderRevs = () => {
+        document.getElementById('rev-list').innerHTML = revs.map((r, i) => `
+            <div class="card list-item" style="border-left-color:#8b5cf6">
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <strong>${r.topic}</strong>
+                    <button class="delete-btn" onclick="revs.splice(${i},1); store.set('up_revs', revs); renderRevs()">✖</button>
+                </div>
+                <div style="display:flex; gap:10px; font-size:0.85rem;">
+                    <label><input type="checkbox" ${r.d7 ? 'checked' : ''} onclick="revs[${i}].d7=!revs[${i}].d7; store.set('up_revs', revs)"> 7D: ${r.t7}</label>
+                    <label><input type="checkbox" ${r.d30 ? 'checked' : ''} onclick="revs[${i}].d30=!revs[${i}].d30; store.set('up_revs', revs)"> 30D: ${r.t30}</label>
+                </div>
+            </div>
+        `).reverse().join('');
+    };
+    function addRev() {
+        const top = document.getElementById('r-topic').value, d = document.getElementById('r-date').value;
+        if(top && d) { revs.push({ topic:top, t7:addDays(d,7), d7:false, t30:addDays(d,30), d30:false }); store.set('up_revs', revs); document.getElementById('r-topic').value=''; renderRevs(); }
+    }
+    renderRevs();
+</script>
+</body>
+</html>
