@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UPSC Mission Command Console v4.5</title>
+  <title>UPSC Mission Command Console v5.0</title>
   
-  <!-- Tailwind CSS Engine -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Alpine.js Core Framework -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   
   <style>
@@ -45,224 +43,32 @@
   </script>
   <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
-<body class="bg-[#0b1329] text-slate-100 min-h-screen font-sans antialiased"
-  x-cloak
-  x-data="{
-    correctPin: '1234', inputPin: '', userAuthenticated: false, accessDenied: false,
-    activeTab: 'dashboard', sidebarOpen: false, formattedDate: '', currentQuote: '',
-    countdown: { days: '00', hours: '00', mins: '00' },
+<body class="bg-[#0b1329] text-slate-100 min-h-screen font-sans antialiased" x-cloak x-data="missionConsole()">
 
-    // Targets Architecture
-    dailyTargets: [], newDailyText: '',
-    weeklyTargets: [], newWeeklyText: '',
-
-    // Current Affairs & Editorials
-    caNotes: [], caMonth: 'January 2026', caTopic: '', caTakeaways: '',
-    editorialNotes: [], edPaper: 'The Hindu', edTopic: '', edArgs: '',
-
-    // Government Schemes & Reports
-    schemes: [], schMin: 'Ministry of Finance', schName: '', schObj: '',
-    reports: [], repBody: 'World Bank', repTitle: '', repFindings: '',
-
-    // Unified Data Bank
-    dataBank: [], dbCat: 'Statistic', dbValue: '', dbRef: '',
-
-    // Answer Writing Tracker & Evaluations
-    answers: [], ansPaper: 'GS Paper 1', ansQ: '', ansStatus: 'Written',
-    evalNotes: [], evalSource: 'Mock Test Paper', evalFeedback: '',
-
-    // AI Evaluation Engine Workspace Properties
-    aiQuestion: '', aiAnswer: '', aiPaper: 'GS Paper 2', aiEvaluating: false, aiFeedback: null,
-
-    // Subject Tracking Parameters
-    preHistory: 45, preGeo: 30, prePolity: 60, preEconomy: 40, preEnvSci: 25,
-    mainsGS1: 20, mainsGS2: 35, mainsGS3: 15, mainsGS4: 40, anthroSyllabus: 35,
-
-    init() {
-      this.updateDateDisplay();
-      this.rotateQuote();
-      this.startCountdown();
-      if (sessionStorage.getItem('upsc_authenticated') === 'true') {
-        this.userAuthenticated = true;
-        this.loadLocalData();
-      }
-      setInterval(() => this.startCountdown(), 60000);
-    },
-
-    verifyAccessPin() {
-      if (this.inputPin === this.correctPin) {
-        this.userAuthenticated = true;
-        this.accessDenied = false;
-        sessionStorage.setItem('upsc_authenticated', 'true');
-        this.loadLocalData();
-      } else {
-        this.accessDenied = true;
-        this.inputPin = '';
-      }
-    },
-
-    logoutSession() {
-      sessionStorage.removeItem('upsc_authenticated');
-      this.userAuthenticated = false;
-      window.location.reload();
-    },
-
-    updateDateDisplay() {
-      this.formattedDate = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-    },
-
-    rotateQuote() {
-      const quotes = [
-        'Don\'t watch the clock; do what it does. Keep going.',
-        'The premium of excellence is absolute discipline over transient desires.',
-        'Sovereignty over state begins with absolute command over your daily routine.',
-        'Structure defeats chaos. Consistent iterations yield standard output numbers.'
-      ];
-      this.currentQuote = quotes[Math.floor(Date.now() / 86400000) % quotes.length];
-    },
-
-    startCountdown() {
-      const target = new Date('May 23, 2027 09:30:00').getTime();
-      const difference = target - new Date().getTime();
-      if (difference > 0) {
-        this.countdown.days = Math.floor(difference / 86400000) + 'd';
-        this.countdown.hours = Math.floor((difference % 86400000) / 3600000) + 'h';
-        this.countdown.mins = Math.floor((difference % 3600000) / 60000) + 'm';
-      }
-    },
-
-    triggerAiEvaluation() {
-      if (!this.aiAnswer.trim() || !this.aiQuestion.trim()) return;
-      this.aiEvaluating = true;
-      this.aiFeedback = null;
-
-      setTimeout(() => {
-        const text = this.aiAnswer.toLowerCase();
-        const wordCount = this.aiAnswer.trim().split(/\s+/).length;
-
-        // Perform programmatic baseline heuristic grading parameter checks
-        const hasConstitutional = text.includes('article') || text.includes('constitution') || text.includes('amendment') || text.includes('judgment') || text.includes('sc ');
-        const hasData = text.includes('%') || text.includes('percent') || text.includes('report') || text.includes('committee') || text.includes('niti');
-        const hasStructure = wordCount >= 140 && wordCount <= 260;
-
-        let calculatedScore = 3;
-        if (hasConstitutional) calculatedScore += 2;
-        if (hasData) calculatedScore += 2;
-        if (wordCount >= 150) calculatedScore += 2;
-        if (text.includes('way forward') || text.includes('conclusion')) calculatedScore += 1;
-
-        this.aiFeedback = {
-          score: Math.min(calculatedScore, 10),
-          words: wordCount,
-          structuralCheck: hasStructure ? 'Optimal Core Structure Bounds' : 'Sub-Optimal Distribution Length',
-          constitutionalAnchoring: hasConstitutional ? 'Verified Anchor Present' : 'Deficient Parameter Hook',
-          dataIntegration: hasData ? 'Verified Analytical Reference Data' : 'Deficient Empirical Context',
-          diagnosticProse: 'The analytical syntax indicates clear core awareness. To push past benchmark targets, emphasize clear sub-headings matching answer directive instructions, amplify constitutional cross-references within body copy blocks, and close with an administrative solution index mapping to a Sustainable Development Goal metric frame.'
-        };
-
-        // Mirror feedback matrix straight into evaluations listing logs
-        this.evalNotes.unshift({
-          id: Date.now(),
-          source: `AI Evaluator Engine (${this.aiPaper})`,
-          feedback: `Q: "${this.aiQuestion.substring(0,40)}..." Generated Score Metrics: ${this.aiFeedback.score}/10. Anchor Parameters: ${this.aiFeedback.constitutionalAnchoring}. Core Recommendation: Conclude cleanly using actionable context directives.`
-        });
-
-        this.aiEvaluating = false;
-        this.saveLocalData();
-      }, 1500);
-    },
-
-    saveLocalData() {
-      if (!this.userAuthenticated) return;
-      const dataStoreObj = {
-        dailyTargets: this.dailyTargets, weeklyTargets: this.weeklyTargets,
-        caNotes: this.caNotes, editorialNotes: this.editorialNotes,
-        schemes: this.schemes, reports: this.reports, dataBank: this.dataBank,
-        answers: this.answers, evalNotes: this.evalNotes,
-        preHistory: this.preHistory, preGeo: this.preGeo, prePolity: this.prePolity, preEconomy: this.preEconomy, preEnvSci: this.preEnvSci,
-        mainsGS1: this.mainsGS1, mainsGS2: this.mainsGS2, mainsGS3: this.mainsGS3, mainsGS4: this.mainsGS4, anthroSyllabus: this.anthroSyllabus
-      };
-      localStorage.setItem('elite_upsc_secure_data_v4', JSON.stringify(dataStoreObj));
-    },
-
-    loadLocalData() {
-      const saved = localStorage.getItem('elite_upsc_secure_data_v4');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        this.dailyTargets = parsed.dailyTargets || [];
-        this.weeklyTargets = parsed.weeklyTargets || [];
-        this.caNotes = parsed.caNotes || [];
-        this.editorialNotes = parsed.editorialNotes || [];
-        this.schemes = parsed.schemes || [];
-        this.reports = parsed.reports || [];
-        this.dataBank = parsed.dataBank || [];
-        this.answers = parsed.answers || [];
-        this.evalNotes = parsed.evalNotes || [];
-
-        this.preHistory = parsed.preHistory ?? 45; this.preGeo = parsed.preGeo ?? 30; this.prePolity = parsed.prePolity ?? 60; this.preEconomy = parsed.preEconomy ?? 40; this.preEnvSci = parsed.preEnvSci ?? 25;
-        this.mainsGS1 = parsed.mainsGS1 ?? 20; this.mainsGS2 = parsed.mainsGS2 ?? 35; this.mainsGS3 = parsed.mainsGS3 ?? 15; this.mainsGS4 = parsed.mainsGS4 ?? 40; this.anthroSyllabus = parsed.anthroSyllabus ?? 35;
-      }
-    },
-
-    // Mutation Handlers
-    addDailyTarget() {
-      if(!this.newDailyText.trim()) return;
-      this.dailyTargets.unshift({ id: Date.now(), text: this.newDailyText, completed: false });
-      this.newDailyText = ''; this.saveLocalData();
-    },
-    addWeeklyTarget() {
-      if(!this.newWeeklyText.trim()) return;
-      this.weeklyTargets.unshift({ id: Date.now(), text: this.newWeeklyText, completed: false });
-      this.newWeeklyText = ''; this.saveLocalData();
-    },
-    addCaNote() {
-      if(!this.caTopic.trim() || !this.caTakeaways.trim()) return;
-      this.caNotes.unshift({ id: Date.now(), month: this.caMonth, topic: this.caTopic, takeaways: this.caTakeaways });
-      this.caTopic = ''; this.caTakeaways = ''; this.saveLocalData();
-    },
-    addEditorialNote() {
-      if(!this.edTopic.trim() || !this.edArgs.trim()) return;
-      this.editorialNotes.unshift({ id: Date.now(), paper: this.edPaper, topic: this.edTopic, args: this.edArgs });
-      this.edTopic = ''; this.edArgs = ''; this.saveLocalData();
-    },
-    addScheme() {
-      if(!this.schName.trim() || !this.schObj.trim()) return;
-      this.schemes.unshift({ id: Date.now(), ministry: this.schMin, name: this.schName, objectives: this.schObj });
-      this.schName = ''; this.schObj = ''; this.saveLocalData();
-    },
-    addReport() {
-      if(!this.repTitle.trim() || !this.repFindings.trim()) return;
-      this.reports.unshift({ id: Date.now(), body: this.repBody, title: this.repTitle, findings: this.repFindings });
-      this.repTitle = ''; this.repFindings = ''; this.saveLocalData();
-    },
-    addDataBankItem() {
-      if(!this.dbValue.trim()) return;
-      this.dataBank.unshift({ id: Date.now(), cat: this.dbCat, val: this.dbValue, ref: this.dbRef || 'General' });
-      this.dbValue = ''; this.dbRef = ''; this.saveLocalData();
-    },
-    addAnswer() {
-      if(!this.ansQ.trim()) return;
-      this.answers.unshift({ id: Date.now(), paper: this.ansPaper, question: this.ansQ, status: this.ansStatus });
-      this.ansQ = ''; this.saveLocalData();
-    },
-    addEvalNote() {
-      if(!this.evalFeedback.trim()) return;
-      this.evalNotes.unshift({ id: Date.now(), source: this.evalSource, feedback: this.evalFeedback });
-      this.evalFeedback = ''; this.saveLocalData();
-    }
-  }"
->
+  <div x-show="!userAuthenticated" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0b1329] via-[#111a36] to-[#0b1329]">
+    <div class="max-w-sm w-full bg-[#111a36]/60 backdrop-blur-md border border-gray-800 p-8 rounded-3xl shadow-2xl text-center space-y-6">
+      <div class="h-14 w-14 bg-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl text-white mx-auto shadow-xl">U</div>
+      <div class="space-y-1">
+        <h2 class="text-lg font-bold text-white">Console Locked</h2>
+        <p class="text-xs text-slate-400">Enter secure workspace PIN</p>
+      </div>
+      <div class="space-y-3">
+        <input type="password" maxlength="4" x-model="inputPin" @keydown.enter="verifyAccessPin()" placeholder="••••" class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-3 text-center text-lg tracking-widest text-indigo-400 focus:outline-none focus:border-indigo-500">
+        <div x-show="accessDenied" x-transition class="bg-red-950/40 border border-red-900 text-red-400 p-2.5 rounded-xl text-xs font-medium">🛑 Authentication Refused.</div>
+        <button @click="verifyAccessPin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-3 rounded-xl font-bold text-xs uppercase tracking-wider transition">Unlock Hub</button>
+      </div>
+    </div>
+  </div>
 
   <div x-show="userAuthenticated" class="min-h-screen flex flex-col relative">
     
-    <!-- HEADER -->
     <header class="bg-[#111a36]/80 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 sticky top-0 z-30 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <button @click="sidebarOpen = true" class="text-slate-300 hover:text-white focus:outline-none">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
         </button>
         <div>
-          <h1 class="text-sm font-bold tracking-tight text-white">Mission Control v4.5</h1>
+          <h1 class="text-sm font-bold tracking-tight text-white">Mission Control</h1>
           <p class="text-[10px] text-slate-400 font-mono" x-text="formattedDate"></p>
         </div>
       </div>
@@ -272,7 +78,6 @@
       </div>
     </header>
 
-    <!-- DRAWER -->
     <div x-show="sidebarOpen" class="fixed inset-0 z-50 flex" x-transition>
       <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="sidebarOpen = false"></div>
       <div class="relative w-64 max-w-xs bg-[#111a36] h-full flex flex-col border-r border-slate-800 p-4 space-y-6" @click.stop>
@@ -280,7 +85,7 @@
           <span class="text-xs font-bold text-white uppercase tracking-wider">Navigation Node</span>
           <button @click="sidebarOpen = false" class="text-slate-400 hover:text-white">✕</button>
         </div>
-        <nav class="flex-1 space-y-1">
+        <nav class="flex-1 space-y-1 overflow-y-auto">
           <button @click="activeTab = 'dashboard'; sidebarOpen = false" :class="activeTab === 'dashboard' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>📊</span> <span>Dashboard Center</span></button>
           <button @click="activeTab = 'targets'; sidebarOpen = false" :class="activeTab === 'targets' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>🎯</span> <span>Daily & Weekly Targets</span></button>
           <button @click="activeTab = 'ai_arena'; sidebarOpen = false" :class="activeTab === 'ai_arena' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>🤖</span> <span>AI Evaluation Arena</span></button>
@@ -293,10 +98,8 @@
       </div>
     </div>
 
-    <!-- MAIN INTERFACE DESK -->
-    <main class="flex-1 p-4 md:p-6 max-w-4xl w-full mx-auto space-y-4">
+    <main class="flex-1 p-4 md:p-6 max-w-4xl w-full mx-auto space-y-4 pb-20">
       
-      <!-- TAB 1: INTEGRATED CORE DASHBOARD MATRIX -->
       <div x-show="activeTab === 'dashboard'" x-transition class="space-y-4">
         <div class="bg-gradient-to-r from-amber-950/40 to-slate-900 border border-amber-900/40 p-4 rounded-2xl shadow-xl text-center">
           <span class="text-[9px] font-bold text-amber-500 uppercase tracking-widest font-mono">Countdown to CSE Prelims (23 May 2027)</span>
@@ -317,7 +120,6 @@
         </div>
       </div>
 
-      <!-- TAB 2: DAILY & WEEKLY TARGETS -->
       <div x-show="activeTab === 'targets'" x-transition class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl flex flex-col space-y-3">
           <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider font-mono border-b border-slate-800 pb-2">Daily Target Parameters</h2>
@@ -327,11 +129,113 @@
           </div>
           <ul class="space-y-2 overflow-y-auto max-h-64 flex-1">
             <template x-for="t in dailyTargets" :key="t.id">
-              <li class="flex items-center justify-between bg-[#0b1329] p-2.5 rounded-lg border border-slate-800 text-xs">
-                <div class="flex items-center space-x-2">
-                  <input type="checkbox" x-model="t.completed" @change="saveLocalData()" class="rounded border-slate-700 bg-slate-900 text-indigo-600">
-                  <span :class="t.completed ? 'line-through text-slate-500' : 'text-slate-300'" x-text="t.text"></span>
+              <li class="flex flex-col bg-[#0b1329] p-2.5 rounded-lg border border-slate-800 text-xs gap-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2 flex-1 min-w-0" x-show="!t.editing">
+                    <input type="checkbox" x-model="t.completed" @change="saveLocalData()" class="rounded border-slate-700 bg-slate-900 text-indigo-600">
+                    <span :class="t.completed ? 'line-through text-slate-500' : 'text-slate-300'" class="truncate" x-text="t.text"></span>
+                  </div>
+                  <div class="flex-1 flex items-center space-x-2" x-show="t.editing">
+                    <input type="text" x-model="t.editText" @keydown.enter="t.text = t.editText; t.editing = false; saveLocalData();" class="bg-[#111a36] border border-slate-700 text-xs text-white rounded px-2 py-0.5 flex-1 focus:outline-none">
+                    <button @click="t.text = t.editText; t.editing = false; saveLocalData();" class="text-emerald-400 font-bold font-mono text-[10px]">SAVE</button>
+                  </div>
+                  <div class="flex items-center space-x-2 shrink-0 ml-2" x-show="!t.editing">
+                    <button @click="t.editText = t.text; t.editing = true" class="text-slate-400 hover:text-amber-400 font-mono text-[9px] bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded">EDIT</button>
+                    <button @click="dailyTargets = dailyTargets.filter(item=>item.id!==t.id); saveLocalData();" class="text-slate-500 hover:text-red-400 font-bold text-sm px-1">×</button>
+                  </div>
                 </div>
-                <button @click="dailyTargets = dailyTargets.filter(item=>item.id!==t.id); saveLocalData();" class="text-slate-600 hover:text-red-400 font-bold">×</button>
               </li>
-        
+            </template>
+          </ul>
+        </div>
+
+        <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl flex flex-col space-y-3">
+          <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono border-b border-slate-800 pb-2">Weekly Macro Targets</h2>
+          <div class="flex space-x-2">
+            <input type="text" x-model="newWeeklyText" @keydown.enter="addWeeklyTarget()" placeholder="Add macro weekly milestone..." class="flex-1 bg-[#0b1329] border border-slate-800 rounded-lg p-2 text-xs focus:outline-none">
+            <button @click="addWeeklyTarget()" class="bg-indigo-600 px-3 rounded-lg text-xs font-bold font-mono">ADD</button>
+          </div>
+          <ul class="space-y-2 overflow-y-auto max-h-64 flex-1">
+            <template x-for="w in weeklyTargets" :key="w.id">
+              <li class="flex flex-col bg-[#0b1329] p-2.5 rounded-lg border border-slate-800 text-xs gap-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-2 flex-1 min-w-0" x-show="!w.editing">
+                    <input type="checkbox" x-model="w.completed" @change="saveLocalData()" class="rounded border-slate-700 bg-slate-900 text-indigo-600">
+                    <span :class="w.completed ? 'line-through text-slate-500' : 'text-slate-300'" class="truncate" x-text="w.text"></span>
+                  </div>
+                  <div class="flex-1 flex items-center space-x-2" x-show="w.editing">
+                    <input type="text" x-model="w.editText" @keydown.enter="w.text = w.editText; w.editing = false; saveLocalData();" class="bg-[#111a36] border border-slate-700 text-xs text-white rounded px-2 py-0.5 flex-1 focus:outline-none">
+                    <button @click="w.text = w.editText; w.editing = false; saveLocalData();" class="text-emerald-400 font-bold font-mono text-[10px]">SAVE</button>
+                  </div>
+                  <div class="flex items-center space-x-2 shrink-0 ml-2" x-show="!w.editing">
+                    <button @click="w.editText = w.text; w.editing = true" class="text-slate-400 hover:text-amber-400 font-mono text-[9px] bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded">EDIT</button>
+                    <button @click="weeklyTargets = weeklyTargets.filter(item=>item.id!==w.id); saveLocalData();" class="text-slate-500 hover:text-red-400 font-bold text-sm px-1">×</button>
+                  </div>
+                </div>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
+
+      <div x-show="activeTab === 'ai_arena'" x-transition class="bg-[#111a36] border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
+        <div class="border-b border-slate-800 pb-2">
+          <h2 class="text-xs font-bold text-indigo-400 tracking-wider uppercase font-mono">AI Answer Evaluation Engine</h2>
+          <p class="text-[11px] text-slate-400 mt-0.5">Drop your mock scripts inside the matrix to run programmatic validation analysis checks.</p>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-[9px] text-slate-400 font-mono uppercase mb-1">Target Assessment Paper</label>
+            <select x-model="aiPaper" class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-2 text-xs focus:outline-none text-indigo-400 font-bold">
+              <option value="GS Paper 1">GS Paper 1 (Society, History, Geo)</option>
+              <option value="GS Paper 2">GS Paper 2 (Polity, Gov, IR)</option>
+              <option value="GS Paper 3">GS Paper 3 (Economy, Env, Security)</option>
+              <option value="GS Paper 4">GS Paper 4 (Ethics & Case Studies)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[9px] text-slate-400 font-mono uppercase mb-1">Question Prompt Context</label>
+            <input type="text" x-model="aiQuestion" placeholder="Paste the complete question prompt..." class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-2.5 text-xs focus:outline-none text-slate-200">
+          </div>
+          <div>
+            <label class="block text-[9px] text-slate-400 font-mono uppercase mb-1">Answer Body Script</label>
+            <textarea x-model="aiAnswer" placeholder="Write or paste your complete drafted answer text block here..." class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-3 text-xs focus:outline-none text-slate-300 h-44 font-sans leading-relaxed"></textarea>
+          </div>
+          <button @click="triggerAiEvaluation()" :disabled="aiEvaluating" class="w-full bg-indigo-600 hover:bg-indigo-500 font-mono text-xs py-2 rounded-xl font-bold uppercase tracking-wider transition disabled:opacity-50">
+            <span x-text="aiEvaluating ? '🧬 Parsing Content Vectors...' : '🤖 Execute AI Evaluation Matrix'"></span>
+          </button>
+        </div>
+
+        <div x-show="aiFeedback" x-transition class="mt-4 p-4 bg-[#0b1329] border border-slate-800 rounded-xl space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-bold font-mono text-amber-400 uppercase">Structural Diagnostic Scorecard</h3>
+            <div class="text-right">
+              <span class="text-2xl font-black text-indigo-400" x-text="aiFeedback ? aiFeedback.score : 0"></span><span class="text-xs text-slate-500">/10</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
+            <div class="p-2 bg-[#111a36] rounded border border-slate-800/60">
+              <span class="text-slate-500 block text-[9px]">WORD COUNT STATUS</span>
+              <span class="text-slate-200 font-bold" x-text="aiFeedback ? aiFeedback.words + ' Words (' + aiFeedback.structuralCheck + ')' : ''"></span>
+            </div>
+            <div class="p-2 bg-[#111a36] rounded border border-slate-800/60">
+              <span class="text-slate-500 block text-[9px]">CONSTITUTIONAL INTEGRATION</span>
+              <span :class="aiFeedback && aiFeedback.constitutionalAnchoring.includes('Verified') ? 'text-emerald-400' : 'text-rose-400'" class="font-bold" x-text="aiFeedback ? aiFeedback.constitutionalAnchoring : ''"></span>
+            </div>
+          </div>
+          <div class="p-3 bg-[#111a36] rounded-xl border border-slate-800 text-xs leading-relaxed text-slate-300">
+            <strong class="text-[9px] font-mono text-indigo-400 uppercase block mb-1">Strategic AI Insight:</strong>
+            <p x-text="aiFeedback ? aiFeedback.diagnosticProse : ''"></p>
+          </div>
+        </div>
+      </div>
+
+      <div x-show="activeTab === 'ca_notes'" x-transition class="space-y-4">
+        <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl space-y-3">
+          <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">Monthly Current Affairs Notes</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#0b1329] p-3 rounded-xl border border-slate-800 items-end">
+            <div>
+              <label class="block text-[9px] text-slate-400 font-mono mb-1">Target Period</label>
+              <select x-model="caMonth" class="w-full bg-[#111a36] border border-slate-800 rounded p-1.5 text-xs text-white focus:outline-none">
+                <option value="January 2026">January 2026</option><option value="February 2026">February 2026</option>
+                <option value="March 2026">March 2026</option><op
