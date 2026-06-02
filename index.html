@@ -5,14 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ElitePrep UPSC Dashboard</title>
   
-  <!-- Tailwind CSS Engine -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Firebase Compatibility SDK Scripts via CDN -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   
-  <!-- Alpine.js Core Framework -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   
   <style>
@@ -28,15 +25,15 @@
     // ========================================================
     // SECURITY CONFIGURATION
     // ========================================================
-    allowedUserEmail: 'panditashwani34@gmail.com', // 👈 CHANGE THIS TO YOUR GMAIL ADDRESS!
+    allowedUserEmail: 'panditashwani34@gmail.com',
     
     userAuthenticated: false,
     accessDenied: false,
     currentUser: null,
     activeTab: 'core',
 
-    // Firebase Core Initialization Setup using your exact new project keys
-        init() {
+    // Firebase Core Initialization Setup
+    init() {
       const firebaseConfig = {
         apiKey: 'AIzaSyCSUbwjYdxdGPUIjN_VYvcCcc6jLqflF5c',
         authDomain: 'upsc-web-1daf2.firebaseapp.com',
@@ -46,12 +43,13 @@
         appId: '1:986435590514:web:784d4074a43b042890e5eb'
       };
 
+      // Initialize Firebase cleanly
       firebase.initializeApp(firebaseConfig);
         
       // Read the incoming Google Redirect data tokens immediately upon page reload
       firebase.auth().getRedirectResult()
         .then((result) => {
-          if (result.user) {
+          if (result && result.user) {
             this.handleUserSession(result.user);
           }
         })
@@ -81,7 +79,6 @@
         firebase.auth().signOut();
       }
     },
-
 
     loginWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
@@ -128,7 +125,6 @@
         this.essayDone = parsed.essayDone || 0;
         this.anthroSyllabus = parsed.anthroSyllabus || 0;
       } else {
-        // Hydrate defaults if new registration footprint
         this.tasks = [
           { id: 1, text: 'Analyze UPSC GS Paper 1 Economy trends', subject: 'Polity' },
           { id: 2, text: 'Revise Anthropology Paper 1 Physical Anthro section', subject: 'Anthro' }
@@ -192,75 +188,54 @@
   }"
 >
 
-  <!-- GATE KEEPER VIEW: SHOWN IF NOT LOGGED IN -->
   <div x-show="!userAuthenticated" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950">
     <div class="max-w-md w-full bg-gray-900/50 backdrop-blur-md border border-gray-800 p-8 rounded-3xl shadow-2xl text-center space-y-6">
-      
-      <div class="h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center font-bold text-2xl text-white tracking-widest mx-auto shadow-xl shadow-indigo-500/10">U</div>
-      
+      <div class="h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center font-bold text-2xl text-white tracking-widest mx-auto shadow-xl">U</div>
       <div class="space-y-2">
         <h2 class="text-xl font-extrabold tracking-tight text-white">UPSC Elite Control Hub</h2>
-        <p class="text-xs text-gray-400">This workstation is protected by absolute hardware gateway parameters. Authenticate via Google to unlock your preparation data arrays.</p>
+        <p class="text-xs text-gray-400">Authenticate via Google to unlock your preparation data arrays.</p>
       </div>
-
-      <!-- Access Warning Tag -->
       <div x-show="accessDenied" x-transition class="bg-red-950/40 border border-red-900 text-red-400 p-3 rounded-xl text-xs font-medium">
         🛑 Access Denied: This account profile is unauthorized.
       </div>
-
       <button @click="loginWithGoogle()" class="w-full flex items-center justify-center space-x-3 bg-white hover:bg-gray-100 text-gray-900 px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition duration-150 shadow-lg">
-        <svg class="h-4 w-4" viewBox="0 0 24 24">
-          <path fill="#EA4335" d="M23.49 12.275c0-.825-.075-1.613-.21-2.388H12v4.513h6.44c-.275 1.45-1.087 2.675-2.312 3.5v2.9h3.738c2.188-2.013 3.45-4.975 3.45-8.525z"/>
-          <path fill="#4285F4" d="M12 24c3.24 0 5.95-1.075 7.938-2.913l-3.737-2.9c-1.037.688-2.362 1.1-4.201 1.1-3.237 0-5.975-2.188-6.95-5.138H1.31v3c1.975 3.925 6.025 6.65 10.69 6.65z"/>
-          <path fill="#FBBC05" d="M5.05 14.15a7.15 7.15 0 0 1 0-4.3c0-.025.012-.05.012-.075V6.775H1.31a11.992 11.992 0 0 0 0 10.45l3.74-2.875c0-.063-.013-.125-.013-.2z"/>
-          <path fill="#34A853" d="M12 4.75c1.763 0 3.35.6 4.6 1.8l3.425-3.425C17.938 1.188 15.225 0 12 0 7.335 0 3.287 2.725 1.31 6.65l3.74 2.875c.975-2.95 3.713-5.138 6.95-5.138z"/>
-        </svg>
         <span>Sign In With Google</span>
       </button>
     </div>
   </div>
 
-  <!-- AUTHENTICATED COMMAND CENTER WORKSPACE -->
   <div x-show="userAuthenticated" class="min-h-screen flex flex-col">
-    
-    <!-- Top Nav Header Module -->
     <header class="bg-gray-900/80 backdrop-blur-md border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-50">
       <div class="flex items-center space-x-3">
-        <div class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white tracking-wider shadow-lg">U</div>
+        <div class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">U</div>
         <div>
           <h1 class="text-sm font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">UPSC Elite Engine v2.0</h1>
-          <p class="text-[10px] text-gray-500 font-mono tracking-tight" x-text="'Authorized Access Terminal: ' + currentUser?.email"></p>
+          <p class="text-[10px] text-gray-500 font-mono" x-text="'Authorized: ' + currentUser?.email"></p>
         </div>
       </div>
       <div class="flex items-center space-x-3">
-        <span class="px-2.5 py-1 rounded-full bg-indigo-950/50 border border-indigo-800 text-indigo-400 font-medium font-mono text-xs" x-text="studyHours + ' Ready Hours Logged'"></span >
+        <span class="px-2.5 py-1 rounded-full bg-indigo-950/50 border border-indigo-800 text-indigo-400 font-mono text-xs" x-text="studyHours + ' Hours Logged'"></span>
         <button @click="logoutSession()" class="text-xs font-mono text-gray-500 hover:text-red-400 transition">Disconnect</button>
       </div>
     </header>
 
     <div class="flex flex-col lg:flex-row flex-1">
-      <!-- Sidebar Panel Layout Navigation -->
       <nav class="w-full lg:w-64 bg-gray-900/40 border-b lg:border-b-0 lg:border-r border-gray-800 p-4 space-y-1.5 shrink-0">
-        <div class="text-[10px] uppercase tracking-wider font-bold text-gray-500 px-3 mb-2 font-mono">Core Modules</div>
-        
-        <button @click="activeTab = 'core'" :class="activeTab === 'core' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400 hover:bg-gray-900'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+        <button @click="activeTab = 'core'" :class="activeTab === 'core' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
           <span>⏱️</span> <span>Core Target Workspace</span>
         </button>
-        <button @click="activeTab = 'intelligence'" :class="activeTab === 'intelligence' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400 hover:bg-gray-900'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+        <button @click="activeTab = 'intelligence'" :class="activeTab === 'intelligence' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
           <span>📊</span> <span>Mistake Tracker Dashboard</span>
         </button>
-        <button @click="activeTab = 'vocab'" :class="activeTab === 'vocab' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400 hover:bg-gray-900'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+        <button @click="activeTab = 'vocab'" :class="activeTab === 'vocab' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
           <span>📖</span> <span>Vocabulary Knowledge Vault</span>
         </button>
-        <button @click="activeTab = 'eliteMetrics'" :class="activeTab === 'eliteMetrics' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400 hover:bg-gray-900'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+        <button @click="activeTab = 'eliteMetrics'" :class="activeTab === 'eliteMetrics' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
           <span>✍️</span> <span>UPSC Elite Metrics Suite</span>
         </button>
       </nav>
 
-      <!-- Main Central Core Workflows Component -->
-      <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
-        
-        <!-- INTERACTIVE TIMER & TARGET HOOKS -->
+      <main class="flex-1 p-4 md:p-6 overflow-y-auto">
         <div x-show="activeTab === 'core'" x-transition class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl">
@@ -273,7 +248,6 @@
                 </div>
               </div>
             </div>
-            
             <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl flex flex-col">
               <h2 class="text-xs font-bold text-gray-400 tracking-widest uppercase font-mono mb-4">Daily Target Matrix</h2>
               <div class="space-y-2 mb-4">
@@ -302,10 +276,9 @@
           </div>
         </div>
 
-        <!-- MISTAKE LOG COMPONENT -->
         <div x-show="activeTab === 'intelligence'" x-transition class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl space-y-6">
           <div class="border-b border-gray-800 pb-4">
-            <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Mock Mistake Analytics Dashboard</h2>
+            <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Mock Mistake Analytics</h2>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-950 p-4 rounded-xl border border-gray-855">
             <input type="text" x-model="newTopic" placeholder="Topic Domain" class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white focus:outline-none">
@@ -326,7 +299,7 @@
                   <p class="text-xs text-gray-400" x-text="m.error"></p>
                 </div>
                 <div class="flex items-center space-x-3 shrink-0">
-                  <span class="text-[10px] font-mono bg-red-950/40 text-red-400 px-2.5 py-1 rounded-full border border-red-900/30" x-text="'Review: ' + m.date"></span>
+                  <span class="text-[10px] font-mono bg-red-950/40 text-red-400 px-2.5 py-1 rounded-full border border-red-900" x-text="'Review: ' + m.date"></span>
                   <button @click="mistakes = mistakes.filter(item => item.id !== m.id); saveLocalData();" class="text-gray-600 hover:text-red-400 text-sm font-bold">×</button>
                 </div>
               </div>
@@ -334,14 +307,13 @@
           </div>
         </div>
 
-        <!-- VOCAB VAULT MODULE -->
         <div x-show="activeTab === 'vocab'" x-transition class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl space-y-6">
           <div class="flex justify-between items-center border-b border-gray-800 pb-4">
-            <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Lexicon Vault & Analytical Comprehension</h2>
+            <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Lexicon Vault</h2>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-gray-950 p-3 rounded-xl border border-gray-855 items-end">
             <input type="text" x-model="vWord" placeholder="Word" class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white focus:outline-none">
-            <input type="text" x-model="vMeaning" placeholder="Precise Definition" class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white focus:outline-none col-span-2">
+            <input type="text" x-model="vMeaning" placeholder="Definition" class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white focus:outline-none col-span-2">
             <button @click="addVocab()" class="bg-indigo-600 text-xs py-2 rounded-lg font-bold uppercase">Vault It</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
@@ -355,6 +327,22 @@
           </div>
         </div>
 
-        <!-- PROGRESS EVAL METRICS -->
         <div x-show="activeTab === 'eliteMetrics'" x-transition class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-       
+          <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl space-y-5 xl:col-span-2">
+            <h2 class="text-xs font-bold text-indigo-400 tracking-widest uppercase font-mono border-b border-gray-800 pb-3">Tracking Matrix</h2>
+            <div class="bg-gray-950 p-4 rounded-xl border border-gray-855 space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-medium text-gray-300">GS Answer Writing Tracker Index</span>
+                <input type="number" x-model="mainsDone" @input="saveLocalData()" class="w-12 bg-gray-900 border border-gray-800 rounded p-1 text-center text-indigo-400 font-bold text-xs">
+              </div>
+              <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
+                <div class="bg-indigo-500 h-full transition-all duration-300" :style="'width: ' + ((mainsDone / mainsTarget) * 100) + '%'"></div>
+              </div>
+            </div>
+            <div class="bg-gray-950 p-4 rounded-xl border border-gray-855 space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-medium text-gray-300">Philosophical Essay Tracker Outlines</span>
+                <input type="number" x-model="essayDone" @input="saveLocalData()" class="w-12 bg-gray-900 border border-gray-800 rounded p-1 text-center text-teal-400 font-bold text-xs">
+              </div>
+              <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
+                <div class="bg-teal-500 h-full transition-all duration-300" :style="'width: ' + ((e
