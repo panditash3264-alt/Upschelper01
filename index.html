@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UPSC Mission Command Console v6.0</title>
+  <title>UPSC Mission Control Center v6.5</title>
   
   <!-- Tailwind CSS Engine -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -17,7 +17,7 @@
     ::-webkit-scrollbar-track { background: #0b1329; }
     ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 10px; }
 
-    /* Google Translate App Style UI Overrides */
+    /* Google Translate Standalone UI Overrides */
     .goog-te-gadget-simple {
       background-color: #111a36 !important;
       border: 1px solid #1f293d !important;
@@ -35,7 +35,7 @@
     body { top: 0px !important; }
   </style>
 
-  <script defer type="text/javascript">
+  <script type="text/javascript">
     function googleTranslateElementInit() {
       new google.translate.TranslateElement({
         pageLanguage: 'en',
@@ -43,81 +43,78 @@
       }, 'google_translate_element');
     }
   </script>
-  <script defer type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
 <body class="bg-[#0b1329] text-slate-100 min-h-screen font-sans antialiased">
 
-  <!-- MAIN APP WRAPPER -->
-  <div x-cloak x-data="missionConsole()" class="w-full min-h-screen">
+  <!-- SAFE MOUNT POINT TO PREVENT ENGINE CRASH BLANK SCREEN DROPS -->
+  <div x-cloak x-data="missionControlWorkspace()" class="w-full min-h-screen">
       
-    <!-- SECURITY GATEKEEPER PASS PANEL -->
+    <!-- GATEKEEPER LOCK SCREEN OVERLAY -->
     <div x-show="!userAuthenticated" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0b1329] via-[#111a36] to-[#0b1329]">
       <div class="max-w-sm w-full bg-[#111a36]/60 backdrop-blur-md border border-gray-800 p-8 rounded-3xl shadow-2xl text-center space-y-6">
         <div class="h-14 w-14 bg-indigo-600 rounded-2xl flex items-center justify-center font-bold text-xl text-white mx-auto shadow-xl">U</div>
         <div class="space-y-1">
-          <h2 class="text-lg font-bold text-white">Console Locked</h2>
-          <p class="text-xs text-slate-400">Enter secure workspace PIN</p>
+          <h2 class="text-lg font-bold text-white">Console Secured</h2>
+          <p class="text-xs text-slate-400">Provide workstation pin credentials</p>
         </div>
         <div class="space-y-3">
-          <input type="password" maxlength="4" x-model="inputPin" @keydown.enter="verifyAccessPin()" placeholder="••••" class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-3 text-center text-lg tracking-widest text-indigo-400 focus:outline-none focus:border-indigo-500">
-          <div x-show="accessDenied" x-transition class="bg-red-950/40 border border-red-900 text-red-400 p-2.5 rounded-xl text-xs font-medium">🛑 Authentication Refused.</div>
-          <button @click="verifyAccessPin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-3 rounded-xl font-bold text-xs uppercase tracking-wider transition">Unlock Hub</button>
+          <input type="password" maxlength="4" x-model="inputPin" @keydown.enter="verifyAccessHubPin()" placeholder="••••" class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-3 text-center text-lg tracking-widest text-indigo-400 focus:outline-none">
+          <div x-show="accessDenied" x-transition class="bg-red-950/40 border border-red-900 text-red-400 p-2.5 rounded-xl text-xs font-medium">🛑 Pin signature mismatch.</div>
+          <button @click="verifyAccessHubPin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-3 rounded-xl font-bold text-xs uppercase tracking-wider transition">Unlock Station</button>
         </div>
       </div>
     </div>
 
-    <!-- AUTHENTICATED COMMAND CENTER EXECUTION FRAME -->
+    <!-- WORKSPACE DESK AREA PANEL MATRIX -->
     <div x-show="userAuthenticated" class="min-h-screen flex flex-col relative">
       
-      <!-- HEADER -->
+      <!-- TOP NAVIGATION CONSOLE CONTROLS -->
       <header class="bg-[#111a36]/80 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 sticky top-0 z-30 flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <button @click="sidebarOpen = true" class="text-slate-300 hover:text-white focus:outline-none">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div>
-            <h1 class="text-sm font-bold tracking-tight text-white">Mission Control</h1>
+            <h1 class="text-sm font-bold tracking-tight text-white">Mission Engine v6.5</h1>
             <p class="text-[10px] text-slate-400 font-mono" x-text="formattedDate"></p>
           </div>
         </div>
         <div class="flex items-center space-x-3">
           <div id="google_translate_element" class="scale-90 origin-right hidden sm:block"></div>
-          <button @click="logoutSession()" class="text-[10px] font-mono border border-slate-800 bg-[#0b1329] text-slate-400 px-2 py-1 rounded-md hover:text-red-400 transition">Lock</button>
+          <button @click="logoutHubSession()" class="text-[10px] font-mono border border-slate-800 bg-[#0b1329] text-slate-400 px-2 py-1 rounded-md hover:text-red-400 transition">Lock</button>
         </div>
       </header>
 
-      <!-- SIDEBAR DRAWER -->
+      <!-- EXPANDABLE ACTION MENUS SIDEBAR DRAWER -->
       <div x-show="sidebarOpen" class="fixed inset-0 z-50 flex" x-transition>
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="sidebarOpen = false"></div>
         <div class="relative w-64 max-w-xs bg-[#111a36] h-full flex flex-col border-r border-slate-800 p-4 space-y-6" @click.stop>
           <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-            <span class="text-xs font-bold text-white uppercase tracking-wider">Navigation Node</span>
+            <span class="text-xs font-bold text-white uppercase tracking-wider">Operational Nodes</span>
             <button @click="sidebarOpen = false" class="text-slate-400 hover:text-white">✕</button>
           </div>
           <nav class="flex-1 space-y-1 overflow-y-auto">
-            <button @click="activeTab = 'dashboard'; sidebarOpen = false" :class="activeTab === 'dashboard' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>📊</span> <span>Dashboard Center</span></button>
-            <button @click="activeTab = 'targets'; sidebarOpen = false" :class="activeTab === 'targets' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>🎯</span> <span>Daily & Weekly Targets</span></button>
-            <button @click="activeTab = 'ai_arena'; sidebarOpen = false" :class="activeTab === 'ai_arena' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>🤖</span> <span>AI Evaluation Arena</span></button>
-            <button @click="activeTab = 'ca_notes'; sidebarOpen = false" :class="activeTab === 'ca_notes' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>📰</span> <span>CA & Editorial Notes</span></button>
-            <button @click="activeTab = 'schemes_reports'; sidebarOpen = false" :class="activeTab === 'schemes_reports' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>🏛️</span> <span>Schemes & Reports</span></button>
-            <button @click="activeTab = 'databank'; sidebarOpen = false" :class="activeTab === 'databank' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>🗄️</span> <span>Unified Data Bank</span></button>
-            <button @click="activeTab = 'writing_eval'; sidebarOpen = false" :class="activeTab === 'writing_eval' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>✍️</span> <span>Writing & Evaluation</span></button>
-            <button @click="activeTab = 'subject_track'; sidebarOpen = false" :class="activeTab === 'subject_track' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>📈</span> <span>Subject Tracking</span></button>
+            <button @click="activeTab = 'dashboard'; sidebarOpen = false" :class="activeTab === 'dashboard' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>📊</span> <span>Dashboard Base</span></button>
+            <button @click="activeTab = 'targets'; sidebarOpen = false" :class="activeTab === 'targets' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>🎯</span> <span>Target Parameters</span></button>
+            <button @click="activeTab = 'ca_vault'; sidebarOpen = false" :class="activeTab === 'ca_vault' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>📰</span> <span>CA / Editorial Notes</span></button>
+            <button @click="activeTab = 'high_yield'; sidebarOpen = false" :class="activeTab === 'high_yield' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>🏛️</span> <span>High Yield Metrics</span></button>
+            <button @click="activeTab = 'subject_matrix'; sidebarOpen = false" :class="activeTab === 'subject_matrix' ? 'bg-slate-800 text-amber-400 font-bold' : 'text-slate-300'" class="w-full flex items-center space-x-3 px-3 py-2 rounded-xl text-xs text-left transition"><span>📈</span> <span>Syllabus Subject Hub</span></button>
           </nav>
         </div>
       </div>
 
-      <!-- MAIN INTERFACE CORE DESK -->
+      <!-- PRIMARY CONTENT ENTRY ROUTER HUB -->
       <main class="flex-1 p-4 md:p-6 max-w-4xl w-full mx-auto space-y-4 pb-20">
         
-        <!-- TAB 1: INTEGRATED CORE DASHBOARD MATRIX -->
+        <!-- MODULE PANEL 1: DASHBOARD ANALYTICS OVERVIEW -->
         <div x-show="activeTab === 'dashboard'" x-transition class="space-y-4">
           <div class="bg-gradient-to-r from-amber-950/40 to-slate-900 border border-amber-900/40 p-4 rounded-2xl shadow-xl text-center">
-            <span class="text-[9px] font-bold text-amber-500 uppercase tracking-widest font-mono">Countdown to CSE Prelims (23 May 2027)</span>
-            <div class="flex justify-center items-center space-x-4 mt-1">
-              <div class="text-3xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-300" x-text="countdown.days"></div>
-              <div class="text-3xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-300" x-text="countdown.hours"></div>
-              <div class="text-3xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-300" x-text="countdown.mins"></div>
+            <h3 class="text-[9px] font-bold text-amber-500 uppercase tracking-widest font-mono">Countdown Parameter to CSE (23 May 2027)</h3>
+            <div class="flex justify-center items-center space-x-4 mt-2">
+              <div class="text-3xl font-mono font-black text-slate-100" x-text="countdown.days"></div>
+              <div class="text-3xl font-mono font-black text-slate-100" x-text="countdown.hours"></div>
+              <div class="text-3xl font-mono font-black text-slate-100" x-text="countdown.mins"></div>
             </div>
           </div>
 
@@ -125,119 +122,411 @@
             <p class="text-xs italic text-amber-400/90 font-medium" x-text="'“' + currentQuote + '”'"></p>
           </div>
 
+          <!-- Summary Aggregation Cards -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div class="bg-[#111a36] border border-slate-800 p-3 rounded-xl text-center"><p class="text-[9px] text-slate-400 uppercase font-mono">Daily Targets</p><h4 class="text-base font-bold mt-0.5" x-text="dailyTargets.filter(t=>!t.completed).length + ' Active'"></h4></div>
-            <div class="bg-[#111a36] border border-slate-800 p-3 rounded-xl text-center"><p class="text-[9px] text-slate-400 uppercase font-mono">Weekly Progress</p><h4 class="text-base font-bold mt-0.5" x-text="weeklyTargets.filter(t=>t.completed).length + '/' + weeklyTargets.length"></h4></div>
-            <div class="bg-[#111a36] border border-slate-800 p-3 rounded-xl text-center"><p class="text-[9px] text-slate-400 uppercase font-mono">CA / Editorials</p><h4 class="text-base font-bold mt-0.5" x-text="(caNotes.length + editorialNotes.length) + ' Records'"></h4></div>
-            <div class="bg-[#111a36] border border-slate-800 p-3 rounded-xl text-center"><p class="text-[9px] text-slate-400 uppercase font-mono">Answers Logged</p><h4 class="text-base font-bold mt-0.5" x-text="answers.length + ' Papers'"></h4></div>
+            <div class="bg-[#111a36] border border-slate-800 p-3 rounded-xl text-center"><p class="text-[9px] text-slate-400 uppercase font-mono">Tasks Active</p><h4 class="text-base font-bold mt-0.5" x-text="tasks.filter(t=>!t.completed).length + ' Open'"></h4></div>
+            <div class="bg-[#111a36] border border-slate-800 p-3 rounded-xl text-center"><p class="text-[9px] text-slate-400 uppercase font-mono">Syllabus Domains</p><h4 class="text-base font-bold mt-0.5" x-text="subjects.length + ' Tracked'"></h4></div>
+            <div class="bg-[#111a36] border border-slate-800 p-3 rounded-xl text-center"><p class="text-[9px] text-slate-400 uppercase font-mono">CA Records</p><h4 class="text-base font-bold mt-0.5" x-text="caNotes.length + ' Logs'"></h4></div>
+            <div class="bg-[#111a36] border border-slate-800 p-3 rounded-xl text-center"><p class="text-[9px] text-slate-400 uppercase font-mono">Editorials</p><h4 class="text-base font-bold mt-0.5" x-text="editorialNotes.length + ' Units'"></h4></div>
           </div>
 
-          <!-- Data Operations (JSON Backup Export/Import) -->
-          <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl space-y-3">
-            <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono border-b border-slate-800 pb-2">System Data Operations (Backup)</h3>
-            <p class="text-[11px] text-slate-400">Local storage has limits and can be cleared by your browser. Export your data regularly to prevent accidental loss.</p>
-            <div class="flex flex-col sm:flex-row gap-3">
-              <button @click="exportData()" class="flex-1 bg-indigo-900/50 hover:bg-indigo-800 text-indigo-300 font-mono text-xs py-2 rounded-lg transition border border-indigo-800/50">📥 Export JSON Backup</button>
+          <!-- JSON File-Stream Backup Data Engine Block -->
+          <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl space-y-2">
+            <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono">Workstation Integrity Management Data Array</h3>
+            <p class="text-[11px] text-slate-400">Download system states locally to eliminate system memory size restrictions.</p>
+            <div class="flex flex-col sm:flex-row gap-3 pt-1">
+              <button @click="exportDatabaseSnapshot()" class="flex-1 bg-indigo-900/50 hover:bg-indigo-800 text-indigo-300 font-mono text-xs py-2 rounded-lg transition border border-indigo-800/50">📥 Download Snapshot File</button>
               <div class="flex-1 relative">
-                <input type="file" id="importFile" accept=".json" @change="importData($event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                <div class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs py-2 rounded-lg transition text-center border border-slate-700 pointer-events-none">📤 Import JSON Backup</div>
+                <input type="file" accept=".json" @change="importDatabaseSnapshot($event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <div class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs py-2 rounded-lg text-center border border-slate-700 pointer-events-none">📤 Upload Snapshot File</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- TAB 2: DAILY & WEEKLY TARGETS -->
-        <div x-show="activeTab === 'targets'" x-transition class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Daily Targets -->
-          <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl flex flex-col space-y-3">
-            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider font-mono border-b border-slate-800 pb-2">Daily Target Parameters</h2>
+        <!-- MODULE PANEL 2: TARGET MANAGEMENT MATRIX WITH REACTIVE EDITOR -->
+        <div x-show="activeTab === 'targets'" x-transition class="bg-[#111a36] border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
+          <h2 class="text-xs font-bold text-slate-400 tracking-widest uppercase font-mono border-b border-slate-800 pb-2">Operational Target Workspace Router</h2>
+          
+          <div class="space-y-2">
+            <input type="text" x-model="newTaskText" @keydown.enter="createNewTask()" placeholder="Enter complete core objective prompt tracking script..." class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none">
             <div class="flex space-x-2">
-              <input type="text" x-model="newDailyText" @keydown.enter="addDailyTarget()" placeholder="Add daily objective module..." class="flex-1 bg-[#0b1329] border border-slate-800 rounded-lg p-2 text-xs focus:outline-none">
-              <button @click="addDailyTarget()" class="bg-indigo-600 px-3 rounded-lg text-xs font-bold font-mono">ADD</button>
+              <select x-model="newTaskSubject" class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-2 text-xs text-indigo-400 font-bold focus:outline-none">
+                <template x-for="subj in subjects" :key="subj.name">
+                  <option :value="subj.name" x-text="subj.name"></option>
+                </template>
+              </select>
+              <button @click="createNewTask()" class="bg-indigo-600 text-xs px-5 rounded-xl font-bold uppercase transition hover:bg-indigo-500">Route</button>
             </div>
-            <ul class="space-y-2 overflow-y-auto max-h-64 flex-1">
-              <template x-for="t in dailyTargets" :key="t.id">
-                <li class="flex flex-col bg-[#0b1329] p-2.5 rounded-lg border border-slate-800 text-xs gap-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2 flex-1 min-w-0" x-show="!t.editing">
-                      <input type="checkbox" x-model="t.completed" @change="saveLocalData()" class="rounded border-slate-700 bg-slate-900 text-indigo-600">
-                      <span :class="t.completed ? 'line-through text-slate-500' : 'text-slate-300'" class="truncate" x-text="t.text"></span>
-                    </div>
-                    <div class="flex-1 flex items-center space-x-2" x-show="t.editing">
-                      <input type="text" x-model="t.editText" @keydown.enter="t.text = t.editText; t.editing = false; saveLocalData();" class="bg-[#111a36] border border-slate-700 text-xs text-white rounded px-2 py-0.5 flex-1 focus:outline-none">
-                      <button @click="t.text = t.editText; t.editing = false; saveLocalData();" class="text-emerald-400 font-bold font-mono text-[10px]">SAVE</button>
-                    </div>
-                    <div class="flex items-center space-x-2 shrink-0 ml-2" x-show="!t.editing">
-                      <button @click="t.editText = t.text; t.editing = true" class="text-slate-400 hover:text-amber-400 font-mono text-[9px] bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded">EDIT</button>
-                      <button @click="dailyTargets = dailyTargets.filter(item=>item.id!==t.id); saveLocalData();" class="text-slate-500 hover:text-red-400 font-bold text-sm px-1">×</button>
-                    </div>
-                  </div>
-                </li>
-              </template>
-            </ul>
           </div>
 
-          <!-- Weekly Targets -->
-          <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl flex flex-col space-y-3">
-            <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono border-b border-slate-800 pb-2">Weekly Macro Targets</h2>
-            <div class="flex space-x-2">
-              <input type="text" x-model="newWeeklyText" @keydown.enter="addWeeklyTarget()" placeholder="Add macro weekly milestone..." class="flex-1 bg-[#0b1329] border border-slate-800 rounded-lg p-2 text-xs focus:outline-none">
-              <button @click="addWeeklyTarget()" class="bg-indigo-600 px-3 rounded-lg text-xs font-bold font-mono">ADD</button>
+          <ul class="space-y-2 max-h-96 overflow-y-auto pt-1">
+            <template x-for="task in tasks" :key="task.id">
+              <li class="flex flex-col sm:flex-row sm:items-center justify-between bg-[#0b1329] p-3 rounded-xl border border-slate-800 text-xs gap-2">
+                <div class="flex items-start space-x-2 flex-1 min-w-0" x-show="!task.editing">
+                  <input type="checkbox" x-model="task.completed" @change="persistStateStorage()" class="rounded border-slate-700 bg-slate-900 text-indigo-600 mt-0.5">
+                  <span class="bg-indigo-950 text-indigo-400 border border-indigo-900 font-mono text-[8px] font-bold px-1.5 py-0.5 rounded uppercase" x-text="task.subject"></span>
+                  <span :class="task.completed ? 'line-through text-slate-500' : 'text-slate-200'" class="font-medium break-words" x-text="task.text"></span>
+                </div>
+                
+                <div class="flex-1 flex items-center space-x-2" x-show="task.editing">
+                  <input type="text" x-model="task.editText" class="bg-[#111a36] border border-slate-700 text-xs text-white rounded px-2 py-1 flex-1 focus:outline-none">
+                  <button @click="task.text = task.editText; task.editing = false; persistStateStorage();" class="text-emerald-400 font-bold font-mono text-[10px]">SAVE</button>
+                </div>
+
+                <div class="flex items-center justify-end space-x-3 shrink-0" x-show="!task.editing">
+                  <button @click="task.editText = task.text; task.editing = true" class="text-slate-400 hover:text-amber-400 font-mono text-[9px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">EDIT</button>
+                  <button @click="tasks = tasks.filter(t=>t.id!==task.id); persistStateStorage();" class="text-slate-500 hover:text-rose-400 text-base font-black px-1">×</button>
+                </div>
+              </li>
+            </template>
+          </ul>
+        </div>
+
+        <!-- MODULE PANEL 3: CURRENT AFFAIRS & EDITORIAL ROUTING TRAYS -->
+        <div x-show="activeTab === 'ca_vault'" x-transition class="space-y-4">
+          <!-- CA Entries Tracker -->
+          <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl space-y-3">
+            <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider font-mono">Monthly Current Affairs Document Ledger</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#0b1329] p-3 rounded-xl border border-slate-800 items-end">
+              <div>
+                <label class="block text-[9px] text-slate-400 font-mono mb-1">Time Matrix</label>
+                <input type="text" x-model="caInputMonth" placeholder="e.g., June 2026" class="w-full bg-[#111a36] border border-slate-800 rounded p-1.5 text-xs focus:outline-none">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[9px] text-slate-400 font-mono mb-1">Core Topic Heading</label>
+                <input type="text" x-model="caInputTopic" placeholder="e.g., Indo-Pacific Trade Framework Policy Updates" class="w-full bg-[#111a36] border border-slate-800 rounded p-1.5 text-xs focus:outline-none">
+              </div>
+              <div class="sm:col-span-3">
+                <label class="block text-[9px] text-slate-400 font-mono mb-1">Analytical Core Extraction Summary</label>
+                <textarea x-model="caInputTakeaways" placeholder="Log deep core arguments, policy parameters, and strategic metrics data parameters..." class="w-full bg-[#111a36] border border-slate-800 rounded p-1.5 text-xs h-16 focus:outline-none"></textarea>
+              </div>
+              <button @click="logNewCaEntry()" class="sm:col-span-3 bg-indigo-600 text-xs font-mono font-bold py-1.5 rounded-xl uppercase">Commit CA Tracking Record</button>
             </div>
-            <ul class="space-y-2 overflow-y-auto max-h-64 flex-1">
-              <template x-for="w in weeklyTargets" :key="w.id">
-                <li class="flex flex-col bg-[#0b1329] p-2.5 rounded-lg border border-slate-800 text-xs gap-2">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2 flex-1 min-w-0" x-show="!w.editing">
-                      <input type="checkbox" x-model="w.completed" @change="saveLocalData()" class="rounded border-slate-700 bg-slate-900 text-indigo-600">
-                      <span :class="w.completed ? 'line-through text-slate-500' : 'text-slate-300'" class="truncate" x-text="w.text"></span>
-                    </div>
-                    <div class="flex-1 flex items-center space-x-2" x-show="w.editing">
-                      <input type="text" x-model="w.editText" @keydown.enter="w.text = w.editText; w.editing = false; saveLocalData();" class="bg-[#111a36] border border-slate-700 text-xs text-white rounded px-2 py-0.5 flex-1 focus:outline-none">
-                      <button @click="w.text = w.editText; w.editing = false; saveLocalData();" class="text-emerald-400 font-bold font-mono text-[10px]">SAVE</button>
-                    </div>
-                    <div class="flex items-center space-x-2 shrink-0 ml-2" x-show="!w.editing">
-                      <button @click="w.editText = w.text; w.editing = true" class="text-slate-400 hover:text-amber-400 font-mono text-[9px] bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded">EDIT</button>
-                      <button @click="weeklyTargets = weeklyTargets.filter(item=>item.id!==w.id); saveLocalData();" class="text-slate-500 hover:text-red-400 font-bold text-sm px-1">×</button>
-                    </div>
-                  </div>
-                </li>
+            
+            <div class="space-y-2 max-h-48 overflow-y-auto">
+              <template x-for="c in caNotes" :key="c.id">
+                <div class="bg-[#0b1329] p-3 rounded-lg border border-slate-800 relative text-xs">
+                  <button @click="caNotes = caNotes.filter(item=>item.id!==c.id); persistStateStorage();" class="absolute top-2 right-3 text-slate-500 hover:text-red-400 font-bold">×</button>
+                  <span class="font-mono text-[9px] text-amber-400 font-bold block mb-1" x-text="c.month"></span>
+                  <h4 class="font-bold text-slate-200" x-text="c.topic"></h4>
+                  <p class="text-slate-400 mt-1 text-[11px]" x-text="c.takeaways"></p>
+                </div>
               </template>
-            </ul>
+            </div>
+          </div>
+
+          <!-- Editorial Entries Tracker -->
+          <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl space-y-3">
+            <h2 class="text-xs font-bold text-indigo-400 uppercase tracking-wider font-mono">Op-Ed Columns Strategy Ledger</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-[#0b1329] p-3 rounded-xl border border-slate-800 items-end">
+              <div>
+                <label class="block text-[9px] text-slate-400 font-mono mb-1">Press Source</label>
+                <input type="text" x-model="edInputPaper" placeholder="e.g., The Hindu / LiveMint" class="w-full bg-[#111a36] border border-slate-800 rounded p-1.5 text-xs focus:outline-none">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[9px] text-slate-400 font-mono mb-1">Issue Focus Architecture</label>
+                <input type="text" x-model="edInputTopic" placeholder="e.g., Lateral Entry System Pros & Cons Critique" class="w-full bg-[#111a36] border border-slate-800 rounded p-1.5 text-xs focus:outline-none">
+              </div>
+              <div class="sm:col-span-3">
+                <label class="block text-[9px] text-slate-400 font-mono mb-1">Balanced Synthesis Evaluation</label>
+                <textarea x-model="edInputArgs" placeholder="Document counter-arguments, critical institutional recommendations, and structural conclusions..." class="w-full bg-[#111a36] border border-slate-800 rounded p-1.5 text-xs h-16 focus:outline-none"></textarea>
+              </div>
+              <button @click="logNewEditorialEntry()" class="sm:col-span-3 bg-indigo-600 text-xs font-mono font-bold py-1.5 rounded-xl uppercase">Commit Editorial Tracking Record</button>
+            </div>
+
+            <div class="space-y-2 max-h-48 overflow-y-auto">
+              <template x-for="e in editorialNotes" :key="e.id">
+                <div class="bg-[#0b1329] p-3 rounded-lg border border-slate-800 relative text-xs">
+                  <button @click="editorialNotes = editorialNotes.filter(item=>item.id!==e.id); persistStateStorage();" class="absolute top-2 right-3 text-slate-500 hover:text-red-400 font-bold">×</button>
+                  <span class="font-mono text-[9px] text-indigo-400 font-bold block mb-1" x-text="e.paper"></span>
+                  <h4 class="font-bold text-slate-200" x-text="e.topic"></h4>
+                  <p class="text-slate-400 mt-1 text-[11px]" x-text="e.args"></p>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
 
-        <!-- TAB 3: AI EVALUATION ARENA -->
-        <div x-show="activeTab === 'ai_arena'" x-transition class="bg-[#111a36] border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
-          <div class="border-b border-slate-800 pb-2">
-            <h2 class="text-xs font-bold text-indigo-400 tracking-wider uppercase font-mono">AI Answer Evaluation Engine</h2>
-            <p class="text-[11px] text-slate-400 mt-0.5">Drop your mock scripts inside the matrix to run programmatic validation analysis checks.</p>
+        <!-- MODULE PANEL 4: HIGH YIELD ANALYTICAL MODULES VAULT -->
+        <div x-show="activeTab === 'high_yield'" x-transition class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Government Schemes Repository Sub-Engine -->
+            <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl space-y-3">
+              <h3 class="text-xs font-bold text-amber-400 font-mono uppercase border-b border-slate-800 pb-2">Government Schemes Architecture</h3>
+              <div class="space-y-2">
+                <input type="text" x-model="schInputName" placeholder="Scheme Title Name" class="w-full bg-[#0b1329] border border-slate-800 rounded p-1.5 text-xs focus:outline-none">
+                <input type="text" x-model="schInputObj" placeholder="Nodal parameters, operational target bands..." class="w-full bg-[#0b1329] border border-slate-800 rounded p-1.5 text-xs focus:outline-none">
+                <button @click="logNewSchemeRecord()" class="w-full bg-indigo-600 py-1 text-xs font-bold rounded uppercase">Commit Scheme</button>
+              </div>
+              <div class="space-y-1.5 max-h-40 overflow-y-auto text-xs">
+                <template x-for="s in schemes" :key="s.id">
+                  <div class="p-2 bg-[#0b1329] border border-slate-800 rounded flex justify-between items-start">
+                    <div><strong class="text-amber-400 font-mono block" x-text="s.name"></strong><span class="text-slate-400" x-text="s.objectives"></span></div>
+                    <button @click="schemes = schemes.filter(item=>item.id!==s.id); persistStateStorage();" class="text-slate-600 hover:text-red-400 ml-1">×</button>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Reports and Structural Findings Sub-Engine -->
+            <div class="bg-[#111a36] border border-slate-800 p-4 rounded-xl space-y-3">
+              <h3 class="text-xs font-bold text-indigo-400 font-mono uppercase border-b border-slate-800 pb-2">Reports & Performance Indexes Matrix</h3>
+              <div class="space-y-2">
+                <input type="text" x-model="repInputTitle" placeholder="Report Nomenclature Index Name" class="w-full bg-[#0b1329] border border-slate-800 rounded p-1.5 text-xs focus:outline-none">
+                <input type="text" x-model="repInputFindings" placeholder="Publishing bureau findings, index numbers, position indicators..." class="w-full bg-[#0b1329] border border-slate-800 rounded p-1.5 text-xs focus:outline-none">
+                <button @click="logNewReportRecord()" class="w-full bg-indigo-600 py-1 text-xs font-bold rounded uppercase">Commit Report</button>
+              </div>
+              <div class="space-y-1.5 max-h-40 overflow-y-auto text-xs">
+                <template x-for="r in reports" :key="r.id">
+                  <div class="p-2 bg-[#0b1329] border border-slate-800 rounded flex justify-between items-start">
+                    <div><strong class="text-indigo-400 font-mono block" x-text="r.title"></strong><span class="text-slate-400" x-text="r.findings"></span></div>
+                    <button @click="reports = reports.filter(item=>item.id!==r.id); persistStateStorage();" class="text-slate-600 hover:text-red-400 ml-1">×</button>
+                  </div>
+                </template>
+              </div>
+            </div>
           </div>
-          <div class="space-y-3">
-            <div>
-              <label class="block text-[9px] text-slate-400 font-mono uppercase mb-1">Target Assessment Paper</label>
-              <select x-model="aiPaper" class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-2 text-xs focus:outline-none text-indigo-400 font-bold">
-                <option value="GS Paper 1">GS Paper 1 (Society, History, Geo)</option>
-                <option value="GS Paper 2">GS Paper 2 (Polity, Gov, IR)</option>
-                <option value="GS Paper 3">GS Paper 3 (Economy, Env, Security)</option>
-                <option value="GS Paper 4">GS Paper 4 (Ethics & Case Studies)</option>
-              </select>
+        </div>
+
+        <!-- MODULE PANEL 5: DYNAMIC SYLLABUS SUBJECT BUILDER HUB & TRACKS -->
+        <div x-show="activeTab === 'subject_matrix'" x-transition class="space-y-4">
+          
+          <!-- Interactive Core Subject Injector Array -->
+          <div class="bg-[#111a36] border border-slate-800 p-5 rounded-2xl shadow-xl space-y-3">
+            <h2 class="text-xs font-bold text-indigo-400 tracking-wider font-mono uppercase border-b border-slate-800 pb-2">Dynamic Syllabus Domain Injector Engine</h2>
+            <p class="text-[11px] text-slate-400 leading-normal">Add custom subjects or paper domains dynamically. Injected items generate dedicated progress tuning controls inside the syllabus suite tracking matrices automatically.</p>
+            <div class="flex space-x-2">
+              <input type="text" x-model="newSubjectName" placeholder="Enter custom subject domain name (e.g., GS 4: Ethics / Anthro Paper 2)..." class="flex-1 bg-[#0b1329] border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none">
+              <button @click="createNewSyllabusSubject()" class="bg-indigo-600 text-xs px-5 rounded-xl font-bold uppercase transition hover:bg-indigo-500">Inject</button>
             </div>
-            <div>
-              <label class="block text-[9px] text-slate-400 font-mono uppercase mb-1">Question Prompt Context</label>
-              <input type="text" x-model="aiQuestion" placeholder="Paste the complete question prompt..." class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-2.5 text-xs focus:outline-none text-slate-200">
-            </div>
-            <div>
-              <label class="block text-[9px] text-slate-400 font-mono uppercase mb-1">Answer Body Script</label>
-              <textarea x-model="aiAnswer" placeholder="Write or paste your complete drafted answer text block here..." class="w-full bg-[#0b1329] border border-slate-800 rounded-xl p-3 text-xs focus:outline-none text-slate-300 h-44 font-sans leading-relaxed"></textarea>
-            </div>
-            <button @click="triggerAiEvaluation()" :disabled="aiEvaluating" class="w-full bg-indigo-600 hover:bg-indigo-500 font-mono text-xs py-2 rounded-xl font-bold uppercase tracking-wider transition disabled:opacity-50">
-              <span x-text="aiEvaluating ? '🧬 Parsing Content Vectors...' : '🤖 Execute AI Evaluation Matrix'"></span>
-            </button>
           </div>
 
-          <div x-show="aiFeedback" x-transition class="mt-4 p-4 bg-[#0b1329] border border-slate-800 rounded-xl space-y-3">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-              <h3 class="text-xs font-bold font-mono text-amber-400 uppercase">Structural Diagnostic Scorecard</h3>
-              <div class="text-right">
-                <span class="text-2xl font-black text-indigo-400" x-text="aiFeedback ? aiFeedback.score : 0"></span><span class="text-xs text-slate-500">/10</sp
+          <!-- Syllabus Dynamic Tracking Engine Display Framework -->
+          <div class="bg-[#111a36] border border-slate-800 p-5 rounded-2xl shadow-xl space-y-4">
+            <h3 class="text-xs font-bold text-amber-400 tracking-widest uppercase font-mono border-b border-slate-800 pb-2">Syllabus Completion Parameters ConfigurationSuite (%)</h3>
+            
+            <div class="space-y-3 max-h-[420px] overflow-y-auto pr-1">
+              <template x-for="subj in subjects" :key="subj.id">
+                <div class="bg-[#0b1329] p-3 rounded-xl border border-slate-800/80 space-y-2">
+                  <div class="flex justify-between items-center text-xs">
+                    <span class="font-medium text-slate-200 font-mono tracking-wide" x-text="subj.name"></span>
+                    <div class="flex items-center space-x-2">
+                      <input type="number" min="0" max="100" x-model="subj.progress" @input="persistStateStorage()" class="w-12 bg-[#111a36] border border-slate-800 rounded p-1 text-center text-amber-400 font-bold text-xs font-mono focus:outline-none">
+                      <button @click="subjects = subjects.filter(s=>s.id!==subj.id); tasks = tasks.filter(t=>t.subject!==subj.name); persistStateStorage();" class="text-slate-600 hover:text-rose-400 text-sm font-bold pl-1">×</button>
+                    </div>
+                  </div>
+                  <div class="w-full bg-[#111a36] h-1.5 rounded-full overflow-hidden border border-slate-900/60">
+                    <div class="bg-gradient-to-r from-indigo-500 to-amber-500 h-full transition-all duration-300" :style="'width: ' + subj.progress + '%'"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- APPLICATION COMPILATION CORE CONTROL LOGIC SHELL -->
+  <script>
+    function missionControlWorkspace() {
+      return {
+        correctPin: '1234',
+        inputPin: '',
+        userAuthenticated: false,
+        accessDenied: false,
+        activeTab: 'dashboard',
+        sidebarOpen: false,
+        formattedDate: '',
+        currentQuote: '',
+        countdown: { days: '00', hours: '00', mins: '00' },
+
+        // Layout Arrays Properties Stack Elements
+        tasks: [], newTaskText: '', newTaskSubject: '',
+        subjects: [], newSubjectName: '',
+        caNotes: [], caInputMonth: '', caInputTopic: '', caInputTakeaways: '',
+        editorialNotes: [], edInputPaper: '', edInputTopic: '', edInputArgs: '',
+        schemes: [], schInputName: '', schInputObj: '',
+        reports: [], repInputTitle: '', repInputFindings: '',
+
+        init() {
+          this.updateDateDisplayMatrix();
+          this.rotateMotivationalQuoteEngine();
+          this.initializeCountdownLoop();
+          
+          // Secure layout authentication retention routing check over tab restarts
+          if (localStorage.getItem('upsc_authenticated') === 'true') {
+            this.userAuthenticated = true;
+            this.loadLocalDataSnapshot();
+          }
+        },
+
+        verifyAccessHubPin() {
+          if (this.inputPin === this.correctPin) {
+            this.userAuthenticated = true;
+            this.accessDenied = false;
+            localStorage.setItem('upsc_authenticated', 'true');
+            this.loadLocalDataSnapshot();
+          } else {
+            this.accessDenied = true;
+            this.inputPin = '';
+          }
+        },
+
+        logoutHubSession() {
+          localStorage.removeItem('upsc_authenticated');
+          this.userAuthenticated = false;
+          window.location.reload();
+        },
+
+        updateDateDisplayMatrix() {
+          this.formattedDate = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        },
+
+        rotateMotivationalQuoteEngine() {
+          var focusQuotes = [
+            'Don\'t watch the clock; do what it does. Keep going.',
+            'The premium of excellence is absolute discipline over transient desires.',
+            'Sovereignty over state begins with absolute command over your daily routine.',
+            'Structure defeats chaos. Consistent iterations yield standard output numbers.'
+          ];
+          this.currentQuote = focusQuotes[Math.floor(Date.now() / 86400000) % focusQuotes.length];
+        },
+
+        initializeCountdownLoop() {
+          var self = this;
+          function calculateTimeDelta() {
+            var targetEpoch = new Date('May 23, 2027 09:30:00').getTime();
+            var difference = targetEpoch - new Date().getTime();
+            if (difference > 0) {
+              self.countdown.days = Math.floor(difference / 86400000) + 'd';
+              self.countdown.hours = Math.floor((difference % 86400000) / 3600000) + 'h';
+              self.countdown.mins = Math.floor((difference % 3600000) / 60000) + 'm';
+            }
+          }
+          calculateTimeDelta();
+          setInterval(calculateTimeDelta, 60000);
+        },
+
+        exportDatabaseSnapshot() {
+          var memoryString = localStorage.getItem('elite_upsc_secure_data_v7');
+          if (!memoryString) { alert('No structured database snapshot parameters logged.'); return; }
+          var outputBlob = new Blob([memoryString], { type: 'application/json' });
+          var anchorNode = document.createElement('a');
+          anchorNode.href = URL.createObjectURL(outputBlob);
+          anchorNode.download = 'upsc_mission_control_snapshot_' + new Date().toISOString().split('T')[0] + '.json';
+          anchorNode.click();
+        },
+
+        importDatabaseSnapshot(event) {
+          var trackingFile = event.target.files[0];
+          if (!trackingFile) return;
+          var documentReader = new FileReader();
+          var self = this;
+          documentReader.onload = function(e) {
+            try {
+              var parsedContents = e.target.result;
+              JSON.parse(parsedContents); // verification parameter loop
+              localStorage.setItem('elite_upsc_secure_data_v7', parsedContents);
+              self.loadLocalDataSnapshot();
+              alert('Workstation metrics restored securely.');
+            } catch(err) {
+              alert('Error: Invalid snapshot code configuration syntax properties.');
+            }
+          };
+          documentReader.readAsText(trackingFile);
+          event.target.value = '';
+        },
+
+        persistStateStorage() {
+          if (!this.userAuthenticated) return;
+          var consolidatedStorageObject = {
+            tasks: this.tasks.map(function(t) { return Object.assign({}, t, {editing: false}); }),
+            subjects: this.subjects,
+            caNotes: this.caNotes,
+            editorialNotes: this.editorialNotes,
+            schemes: this.schemes,
+            reports: this.reports
+          };
+          localStorage.setItem('elite_upsc_secure_data_v7', JSON.stringify(consolidatedStorageObject));
+        },
+
+        loadLocalDataSnapshot() {
+          var preservedLogsSnapshot = localStorage.getItem('elite_upsc_secure_data_v7');
+          if (preservedLogsSnapshot) {
+            try {
+              var localizedDatabase = JSON.parse(preservedLogsSnapshot);
+              this.tasks = (localizedDatabase.tasks || []).map(function(t) { return Object.assign({}, t, {editing: false, editText: t.text}); });
+              this.subjects = localizedDatabase.subjects || [];
+              this.caNotes = localizedDatabase.caNotes || [];
+              this.editorialNotes = localizedDatabase.editorialNotes || [];
+              this.schemes = localizedDatabase.schemes || [];
+              this.reports = localizedDatabase.reports || [];
+              
+              if(this.subjects.length > 0) { this.newTaskSubject = this.subjects[0].name; }
+            } catch(error) {
+              console.error("Local tracking database corrupted.");
+            }
+          } else {
+            // Hydrate system defaults if fresh device memory initialization layout is running
+            this.subjects = [
+              { id: crypto.randomUUID(), name: 'Pre: History Core', progress: 45 },
+              { id: crypto.randomUUID(), name: 'Pre: Polity Matrix', progress: 60 },
+              { id: crypto.randomUUID(), name: 'Pre: Economy Structure', progress: 40 },
+              { id: crypto.randomUUID(), name: 'Pre: Env & Science', progress: 25 },
+              { id: crypto.randomUUID(), name: 'Mains GS 4 Ethics', progress: 40 },
+              { id: crypto.randomUUID(), name: 'Optional Support: Anthropology', progress: 35 }
+            ];
+            this.newTaskSubject = this.subjects[0].name;
+            this.persistStateStorage();
+          }
+        },
+
+        createNewTask() {
+          if(!this.newTaskText.trim()) return;
+          this.tasks.unshift({ id: crypto.randomUUID(), text: this.newTaskText, subject: this.newTaskSubject, completed: false, editing: false, editText: this.newTaskText });
+          this.newTaskText = ''; this.persistStateStorage();
+        },
+
+        createNewSyllabusSubject() {
+          if(!this.newSubjectName.trim()) return;
+          // Eliminate matching field routing names to prevent duplicate badges assignment
+          var matchExist = this.subjects.some(function(s) { return s.name.toLowerCase() === this.newSubjectName.toLowerCase(); }, this);
+          if(matchExist) { alert('Syllabus subject entry domain name parameters duplicate logged.'); return; }
+          
+          this.subjects.push({ id: crypto.randomUUID(), name: this.newSubjectName.trim(), progress: 0 });
+          if(this.subjects.length === 1) { this.newTaskSubject = this.subjects[0].name; }
+          this.newSubjectName = ''; this.persistStateStorage();
+        },
+
+        logNewCaEntry() {
+          if(!this.caInputTopic.trim() || !this.caInputTakeaways.trim()) return;
+          this.caNotes.unshift({ id: crypto.randomUUID(), month: this.caInputMonth || 'General Log', topic: this.caInputTopic, takeaways: this.caInputTakeaways });
+          this.caInputTopic = ''; this.caInputTakeaways = ''; this.persistStateStorage();
+        },
+
+        logNewEditorialEntry() {
+          if(!this.edInputTopic.trim() || !this.edInputArgs.trim()) return;
+          this.editorialNotes.unshift({ id: crypto.randomUUID(), paper: this.edInputPaper || 'General Column', topic: this.edInputTopic, args: this.edInputArgs });
+          this.edInputTopic = ''; this.edInputArgs = ''; this.persistStateStorage();
+        },
+
+        logNewSchemeRecord() {
+          if(!this.schInputName.trim()) return;
+          this.schemes.unshift({ id: crypto.randomUUID(), name: this.schInputName, objectives: this.schInputObj || 'N/A' });
+          this.schInputName = ''; this.schInputObj = ''; this.persistStateStorage();
+        },
+
+        logNewReportRecord() {
+          if(!this.repInputTitle.trim()) return;
+          this.reports.unshift({ id: crypto.randomUUID(), title: this.repInputTitle, findings: this.repInputFindings || 'N/A' });
+          this.repInputTitle = ''; this.repInputFindings = ''; this.persistStateStorage();
+        }
+      }
+    }
+  </script>
+</body>
+</html>
