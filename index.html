@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UPSC Mission Command Console v7.0</title>
+  <title>UPSC Mission Control Center v7.1</title>
   
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS Engine -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Alpine.js -->
+  <!-- Alpine.js Core Framework -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   
   <style>
@@ -17,11 +17,26 @@
     ::-webkit-scrollbar-track { background: #020617; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     
-    /* Modern Glassmorphic inputs */
     input[type="date"]::-webkit-calendar-picker-indicator {
       filter: invert(1);
       cursor: pointer;
     }
+
+    .goog-te-gadget-simple {
+      background-color: #0f172a !important;
+      border: 1px solid #1e293b !important;
+      padding: 4px 8px !important;
+      border-radius: 0.5rem !important;
+      display: inline-flex !important;
+      align-items: center !important;
+    }
+    .goog-te-gadget-simple .goog-te-menu-value {
+      color: #9ca3af !important;
+      font-size: 11px !important;
+      font-family: monospace !important;
+    }
+    .goog-te-gadget-icon, .goog-te-banner-frame { display: none !important; }
+    body { top: 0px !important; }
   </style>
 
   <script defer type="text/javascript">
@@ -50,7 +65,7 @@
         <div class="space-y-4">
           <input type="password" maxlength="4" x-model="inputPin" @keydown.enter="verifyAccessPin()" placeholder="••••" class="w-full bg-slate-950/50 border border-slate-800 rounded-2xl p-4 text-center text-xl tracking-[0.5em] text-indigo-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all shadow-inner">
           <div x-show="accessDenied" x-transition class="bg-rose-950/30 border border-rose-900/50 text-rose-400 p-3 rounded-xl text-xs font-medium backdrop-blur-sm">🛑 Incorrect Authorization Pin.</div>
-          <button @click="verifyAccessPin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-3.5 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98]">Initialize System</button>
+          <button @click="verifyAccessPin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-3.5 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all shadow-lg hover:shadow-indigo-500/25">Initialize System</button>
         </div>
       </div>
     </div>
@@ -65,7 +80,7 @@
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div>
-            <h1 class="text-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Mission Control v7.0</h1>
+            <h1 class="text-sm font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Mission Control v7.1</h1>
             <p class="text-[10px] text-slate-500 font-mono font-medium" x-text="formattedDate"></p>
           </div>
         </div>
@@ -76,14 +91,14 @@
       </header>
 
       <!-- GLASSMORPHIC SIDEBAR DRAWER -->
-      <div x-show="sidebarOpen" class="fixed inset-0 z-50 flex" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+      <div x-show="sidebarOpen" class="fixed inset-0 z-50 flex" x-transition>
         <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" @click="sidebarOpen = false"></div>
-        <div class="relative w-72 max-w-xs bg-slate-900 border-r border-slate-800 h-full flex flex-col p-5 space-y-6 shadow-2xl" @click.stop x-transition:enter="transition ease-in-out duration-300 transform" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full">
+        <div class="relative w-72 max-w-xs bg-slate-900 border-r border-slate-800 h-full flex flex-col p-5 space-y-6 shadow-2xl" @click.stop>
           <div class="flex items-center justify-between pb-4 border-b border-slate-800">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">System Nodes</span>
             <button @click="sidebarOpen = false" class="text-slate-500 hover:text-white bg-slate-800/50 p-1.5 rounded-md transition-colors">✕</button>
           </div>
-          <nav class="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
+          <nav class="flex-1 space-y-2 overflow-y-auto pr-2">
             <template x-for="item in navItems">
               <button @click="activeTab = item.id; sidebarOpen = false" 
                       :class="activeTab === item.id ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/50' : 'text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200'" 
@@ -100,11 +115,10 @@
       <main class="flex-1 p-4 md:p-6 max-w-5xl w-full mx-auto space-y-6 pb-24">
         
         <!-- TAB 1: INTEGRATED CORE DASHBOARD MATRIX -->
-        <div x-show="activeTab === 'dashboard'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
+        <div x-show="activeTab === 'dashboard'" x-transition class="space-y-6">
           
           <!-- Hero Section -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Countdown -->
             <div class="lg:col-span-2 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-900 to-slate-900 border border-indigo-500/20 p-6 rounded-3xl shadow-xl flex flex-col justify-center relative overflow-hidden">
               <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
               <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest font-mono mb-3 block">Target: CSE Prelims (23 May 2027)</span>
@@ -115,7 +129,6 @@
               </div>
             </div>
             
-            <!-- Quick Actions & Quote -->
             <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl flex flex-col justify-between">
               <p class="text-sm font-medium leading-relaxed text-cyan-100/80 italic border-l-2 border-cyan-500/50 pl-4 py-1" x-text="'“' + currentQuote + '”'"></p>
               <div class="mt-6 flex space-x-2">
@@ -127,8 +140,6 @@
 
           <!-- Dynamic Today View -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <!-- Today's Calendar Tasks -->
             <div class="bg-slate-900/50 border border-slate-800/80 p-5 rounded-3xl backdrop-blur-sm">
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-xs font-bold text-slate-200 uppercase tracking-widest flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> Today's Targets</h3>
@@ -183,7 +194,7 @@
         </div>
 
         <!-- TAB 2: CALENDAR-BASED TASKS -->
-        <div x-show="activeTab === 'calendar_tasks'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-6">
+        <div x-show="activeTab === 'calendar_tasks'" x-transition class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-6">
           <div class="border-b border-slate-800 pb-4 flex justify-between items-end">
             <div>
               <h2 class="text-sm font-bold text-indigo-400 uppercase tracking-widest font-mono">Calendar Task Router</h2>
@@ -212,12 +223,11 @@
           </div>
 
           <div class="space-y-4 pt-2">
-            <!-- Grouped by Date Logic (Simplified visually by sorting) -->
             <ul class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
               <template x-for="task in sortedTasks()" :key="task.id">
                 <li class="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-950/40 p-3 rounded-2xl border border-slate-800/80 text-xs gap-3 hover:bg-slate-900 transition-colors">
                   <div class="flex items-center space-x-3 flex-1 min-w-0">
-                    <input type="checkbox" x-model="task.completed" @change="saveLocalData()" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-offset-slate-900 cursor-pointer">
+                    <input type="checkbox" x-model="task.completed" @change="saveLocalData()" class="w-4 h-4 rounded border-slate-600 bg-slate-800 text-indigo-500 cursor-pointer">
                     <div class="flex flex-col truncate">
                       <div class="flex items-center gap-2 mb-0.5">
                         <span class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest" x-text="task.subject"></span>
@@ -236,7 +246,7 @@
         </div>
 
         <!-- TAB 3: SPACED REPETITION SYSTEM (SRS) -->
-        <div x-show="activeTab === 'spaced_repetition'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-6">
+        <div x-show="activeTab === 'spaced_repetition'" x-transition class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-6">
           <div class="border-b border-slate-800 pb-4">
             <h2 class="text-sm font-bold text-amber-400 uppercase tracking-widest font-mono">Algorithmic Spaced Repetition</h2>
             <p class="text-[11px] text-slate-500 mt-1">Schedules retention cycles automatically (+1d, +3d, +7d, +14d, +30d).</p>
@@ -248,4 +258,10 @@
               <input type="text" x-model="newRevTopic" @keydown.enter="addRevision()" placeholder="E.g., Article 21 Nuances..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all">
             </div>
             <div class="md:col-span-1">
-              <label class="block text-[9px]
+              <label class="block text-[9px] text-slate-400 font-bold uppercase tracking-wider mb-1.5 ml-1">Domain</label>
+              <select x-model="newRevSubject" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-amber-300 font-semibold focus:outline-none focus:border-amber-500 transition-all">
+                <template x-for="subj in subjects" :key="subj.name"><option :value="subj.name" x-text="subj.name"></option></template>
+              </select>
+            </div>
+            <div class="md:col-span-1 flex items-end">
+              <button @click="addRevision()" class="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs p-2.5 rounded-xl font-bold uppercase transiti
