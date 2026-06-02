@@ -80,8 +80,13 @@
       }
     },
 
-    loginWithGoogle() {
+        loginWithGoogle() {
+      // Create the official Google provider structure
       const provider = new firebase.auth.GoogleAuthProvider();
+      
+      // Forces the browser to handle the session smoothly on mobile devices
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
       firebase.auth().signInWithRedirect(provider)
         .catch(err => alert('Authentication Failed: ' + err.message));
     },
