@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ElitePrep UPSC Dashboard</title>
+  
+  <!-- Tailwind CSS Engine -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase Compatibility SDK Scripts via CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  
+  <!-- Alpine.js Core Framework -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <style>
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #111827; }
+    ::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen font-sans antialiased"
+  x-cloak
+  x-data="{
+    // ========================================================
+    // SECURITY CONFIGURATION
+    // ========================================================
+    allowedUserEmail: 'panditashwani34@gmail.com', // 👈 CHANGE THIS TO YOUR GMAIL ADDRESS!
+    
+    userAuthenticated: false,
+    accessDenied: false,
+    currentUser: null,
+    activeTab: 'core',
+
+    // Firebase Core Initialization Setup using your exact new project keys
+    init() {
+      const firebaseConfig = {
+        apiKey: 'AIzaSyCSUbwjYdxdGPUIjN_VYvcCcc6jLqflF5c',
+        authDomain: 'upsc-web-1daf2.firebaseapp.com',
+        projectId: 'upsc-web-1daf2',
+        storageBucket: 'upsc-web-1daf2.firebasestorage.app',
+        messagingSenderId: '986435590514',
+        appId: '1:986435590514:web:784d4074a43b042890e5eb'
+      };
+
+      // Initialize Firebase securely without blockers
+      firebase.initializeApp(firebaseConfig);
+        
+      // Listen to global login/logout state triggers
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          if (user.email.toLowerCase() === this.allowedUserEmail.toLowerCase()) {
+            this.currentUser = user;
+            this.userAuthenticated = true;
+            this.accessDenied = false;
+            this.loadLocalData();
+          } else {
+            // Sign out immediately if email is unapproved
+            this.accessDenied = true;
+            this.userAuthenticated = false;
+            firebase.auth().signOut();
+          }
+        } else {
+          this.userAuthenticated = false;
+          this.currentUser = null;
+        }
+      });
+    },
+
+    loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider)
+        .catch(err => alert('Authentication Failed: ' + err.message));
+    },
+
+    logoutSession() {
+      firebase.auth().signOut().then(() => {
+        this.userAuthenticated = false;
+        window.location.reload();
+      });
+    },
+
+    // ========================================================
+    // PERSISTENCE ENGINE (LOCAL BACKUP)
+    // ========================================================
+    tasks: [],
+    newTask: '', newSubject: 'General',
+    studyHours: 4.5, timerSeconds: 1500, timerActive: false, timerInterval: null,
+    mistakes: [], newTopic: '', newError: '', newRevDate: 'Tomorrow',
+    vocab: [], vWord: '', vMeaning: '', vSyn: '', vAnt: '',
+    mainsTarget: 50, mainsDone: 14, essayTarget: 20, essayDone: 6, anthroSyllabus: 35,
+
+    saveLocalData() {
+      if (!this.userAuthenticated) return;
+      const dataStoreObj = {
+        tasks: this.tasks, studyHours: this.studyHours, mistakes: this.mistakes,
+        vocab: this.vocab, mainsDone: this.mainsDone, essayDone: this.essayDone,
+        anthroSyllabus: this.anthroSyllabus
+      };
+      localStorage.setItem('elite_upsc_data_' + this.currentUser.uid, JSON.stringify(dataStoreObj));
+    },
+
+    loadLocalData() {
+      const saved = localStorage.getItem('elite_upsc_data_' + this.currentUser.uid);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this.tasks = parsed.tasks || [];
+        this.studyHours = parsed.studyHours || 0;
+        this.mistakes = parsed.mistakes || [];
+        this.vocab = parsed.vocab || [];
+        this.mainsDone = parsed.mainsDone || 0;
+        this.essayDone = parsed.essayDone || 0;
+        this.anthroSyllabus = parsed.anthroSyllabus || 0;
+      } else {
+        // Hydrate defaults if new registration footprint
+        this.tasks = [
+          { id: 1, text: 'Analyze UPSC GS Paper 1 Economy trends', subject: 'Polity' },
+          { id: 2, text: 'Revise Anthropology Paper 1 Physical Anthro section', subject: 'Anthro' }
+        ];
+        this.mistakes = [
+          { id: 1, topic: 'Fundamental Rights', error: 'Confused Article 19 clauses during emergency regulations', date: 'In 2 days' }
+        ];
+        this.vocab = [
+          { word: 'Sovereign', meaning: 'Possessing supreme or ultimate power.', synonym: 'Autonomous', antonym: 'Dependent' }
+        ];
+      }
+    },
+
+    // ========================================================
+    // CORE DASHBOARD UTILITIES
+    // ========================================================
+    toggleTimer() {
+      if (this.timerActive) {
+        clearInterval(this.timerInterval);
+        this.timerActive = false;
+      } else {
+        this.timerActive = true;
+        this.timerInterval = setInterval(() => {
+          if (this.timerSeconds > 0) {
+            this.timerSeconds--;
+          } else {
+            clearInterval(this.timerInterval);
+            this.timerActive = false;
+            this.studyHours = parseFloat((parseFloat(this.studyHours) + 0.41).toFixed(2));
+            this.saveLocalData();
+            alert('Outstanding focus block completed! 25 minutes logged.');
+          }
+        }, 1000);
+      }
+    },
+    resetTimer() {
+      clearInterval(this.timerInterval);
+      this.timerActive = false;
+      this.timerSeconds = 1500;
+    },
+    formatTimer() {
+      let mins = Math.floor(this.timerSeconds / 60);
+      let secs = this.timerSeconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    },
+    addTask() {
+      if(!this.newTask.trim()) return;
+      this.tasks.unshift({ id: Date.now(), text: this.newTask, subject: this.newSubject });
+      this.newTask = ''; this.saveLocalData();
+    },
+    addMistake() {
+      if(!this.newTopic.trim() || !this.newError.trim()) return;
+      this.mistakes.unshift({ id: Date.now(), topic: this.newTopic, error: this.newError, date: this.newRevDate });
+      this.newTopic = ''; this.newError = ''; this.saveLocalData();
+    },
+    addVocab() {
+      if(!this.vWord.trim() || !this.vMeaning.trim()) return;
+      this.vocab.unshift({ word: this.vWord, meaning: this.vMeaning, synonym: this.vSyn || 'N/A', antonym: this.vAnt || 'N/A' });
+      this.vWord = ''; this.vMeaning = ''; this.vSyn = ''; this.vAnt = ''; this.saveLocalData();
+    }
+  }"
+>
+
+  <!-- GATE KEEPER VIEW: SHOWN IF NOT LOGGED IN -->
+  <div x-show="!userAuthenticated" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950">
+    <div class="max-w-md w-full bg-gray-900/50 backdrop-blur-md border border-gray-800 p-8 rounded-3xl shadow-2xl text-center space-y-6">
+      
+      <div class="h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center font-bold text-2xl text-white tracking-widest mx-auto shadow-xl shadow-indigo-500/10">U</div>
+      
+      <div class="space-y-2">
+        <h2 class="text-xl font-extrabold tracking-tight text-white">UPSC Elite Control Hub</h2>
+        <p class="text-xs text-gray-400">This workstation is protected by absolute hardware gateway parameters. Authenticate via Google to unlock your preparation data arrays.</p>
+      </div>
+
+      <!-- Access Warning Tag -->
+      <div x-show="accessDenied" x-transition class="bg-red-950/40 border border-red-900 text-red-400 p-3 rounded-xl text-xs font-medium">
+        🛑 Access Denied: This account profile is unauthorized.
+      </div>
+
+      <button @click="loginWithGoogle()" class="w-full flex items-center justify-center space-x-3 bg-white hover:bg-gray-100 text-gray-900 px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition duration-150 shadow-lg">
+        <svg class="h-4 w-4" viewBox="0 0 24 24">
+          <path fill="#EA4335" d="M23.49 12.275c0-.825-.075-1.613-.21-2.388H12v4.513h6.44c-.275 1.45-1.087 2.675-2.312 3.5v2.9h3.738c2.188-2.013 3.45-4.975 3.45-8.525z"/>
+          <path fill="#4285F4" d="M12 24c3.24 0 5.95-1.075 7.938-2.913l-3.737-2.9c-1.037.688-2.362 1.1-4.201 1.1-3.237 0-5.975-2.188-6.95-5.138H1.31v3c1.975 3.925 6.025 6.65 10.69 6.65z"/>
+          <path fill="#FBBC05" d="M5.05 14.15a7.15 7.15 0 0 1 0-4.3c0-.025.012-.05.012-.075V6.775H1.31a11.992 11.992 0 0 0 0 10.45l3.74-2.875c0-.063-.013-.125-.013-.2z"/>
+          <path fill="#34A853" d="M12 4.75c1.763 0 3.35.6 4.6 1.8l3.425-3.425C17.938 1.188 15.225 0 12 0 7.335 0 3.287 2.725 1.31 6.65l3.74 2.875c.975-2.95 3.713-5.138 6.95-5.138z"/>
+        </svg>
+        <span>Sign In With Google</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- AUTHENTICATED COMMAND CENTER WORKSPACE -->
+  <div x-show="userAuthenticated" class="min-h-screen flex flex-col">
+    
+    <!-- Top Nav Header Module -->
+    <header class="bg-gray-900/80 backdrop-blur-md border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-50">
+      <div class="flex items-center space-x-3">
+        <div class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white tracking-wider shadow-lg">U</div>
+        <div>
+          <h1 class="text-sm font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">UPSC Elite Engine v2.0</h1>
+          <p class="text-[10px] text-gray-500 font-mono tracking-tight" x-text="'Authorized Access Terminal: ' + currentUser?.email"></p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span class="px-2.5 py-1 rounded-full bg-indigo-950/50 border border-indigo-800 text-indigo-400 font-medium font-mono text-xs" x-text="studyHours + ' Ready Hours Logged'"></span >
+        <button @click="logoutSession()" class="text-xs font-mono text-gray-500 hover:text-red-400 transition">Disconnect</button>
+      </div>
+    </header>
+
+    <div class="flex flex-col lg:flex-row flex-1">
+      <!-- Sidebar Panel Layout Navigation -->
+      <nav class="w-full lg:w-64 bg-gray-900/40 border-b lg:border-b-0 lg:border-r border-gray-800 p-4 space-y-1.5 shrink-0">
+        <div class="text-[10px] uppercase tracking-wider font-bold text-gray-500 px-3 mb-2 font-mono">Core Modules</div>
+        
+        <button @click="activeTab = 'core'" :class="activeTab === 'core' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400 hover:bg-gray-900'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+          <span>⏱️</span> <span>Core Target Workspace</span>
+        </button>
+        <button @click="activeTab = 'intelligence'" :class="activeTab === 'intelligence' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400 hover:bg-gray-900'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+          <span>📊</span> <span>Mistake Tracker Dashboard</span>
+        </button>
+        <button @click="activeTab = 'vocab'" :class="activeTab === 'vocab' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400 hover:bg-gray-900'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+          <span>📖</span> <span>Vocabulary Knowledge Vault</span>
+        </button>
+        <button @click="activeTab = 'eliteMetrics'" :class="activeTab === 'eliteMetrics' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400 hover:bg-gray-900'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+          <span>✍️</span> <span>UPSC Elite Metrics Suite</span>
+        </button>
+      </nav>
+
+      <!-- Main Central Core Workflows Component -->
+      <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
+        
+        <!-- INTERACTIVE TIMER & TARGET HOOKS -->
+        <div x-show="activeTab === 'core'" x-transition class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl">
+              <h2 class="text-xs font-bold text-gray-400 tracking-widest uppercase font-mono mb-6">Focus Engine Block</h2>
+              <div class="text-center py-6">
+                <div class="text-6xl font-mono font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 mb-6" x-text="formatTimer()"></div>
+                <div class="flex justify-center space-x-3">
+                  <button @click="toggleTimer()" :class="timerActive ? 'bg-amber-600' : 'bg-indigo-600'" class="text-xs px-6 py-2.5 rounded-xl font-bold transition" x-text="timerActive ? 'Pause' : 'Start Session'"></button>
+                  <button @click="resetTimer()" class="bg-gray-800 text-gray-300 text-xs px-5 py-2.5 rounded-xl font-medium transition">Reset</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl flex flex-col">
+              <h2 class="text-xs font-bold text-gray-400 tracking-widest uppercase font-mono mb-4">Daily Target Matrix</h2>
+              <div class="space-y-2 mb-4">
+                <input type="text" x-model="newTask" @keydown.enter="addTask()" placeholder="Type custom target and hit Add..." class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <div class="flex space-x-2">
+                  <select x-model="newSubject" @change="saveLocalData()" class="w-full bg-gray-950 border border-gray-800 rounded-xl p-2.5 text-xs text-amber-500 font-semibold focus:outline-none">
+                    <option value="General">General Studies</option>
+                    <option value="Polity">GS 2: Polity & Governance</option>
+                    <option value="Anthro">Optional: Anthropology Support</option>
+                  </select>
+                  <button @click="addTask()" class="bg-indigo-600 text-xs px-5 rounded-xl font-bold uppercase">Add</button>
+                </div>
+              </div>
+              <ul class="space-y-2 max-h-56 overflow-y-auto flex-1">
+                <template x-for="task in tasks" :key="task.id">
+                  <li class="flex justify-between items-center bg-gray-950 p-3 rounded-xl border border-gray-855 text-xs">
+                    <div class="flex items-start space-x-2.5">
+                      <span :class="task.subject === 'Anthro' ? 'bg-amber-950 text-amber-400 border-amber-800' : 'bg-indigo-950 text-indigo-400 border-indigo-800'" class="text-[9px] font-bold px-1.5 py-0.5 rounded font-mono uppercase" x-text="task.subject"></span>
+                      <span class="text-gray-300 font-medium" x-text="task.text"></span>
+                    </div>
+                    <button @click="tasks = tasks.filter(t => t.id !== task.id); saveLocalData();" class="text-gray-600 hover:text-red-400 text-sm font-bold">×</button>
+                  </li>
+                </template>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- MISTAKE LOG COMPONENT -->
+        <div x-show="activeTab === 'intelligence'" x-transition class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl space-y-6">
+          <div class="border-b border-gray-800 pb-4">
+            <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Mock Mistake Analytics Dashboard</h2>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-950 p-4 rounded-xl border border-gray-855">
+            <input type="text" x-model="newTopic" placeholder="Topic Domain" class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white focus:outline-none">
+            <input type="text" x-model="newError" placeholder="Conceptual Blindspot" class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white focus:outline-none">
+            <div class="flex space-x-2">
+              <select x-model="newRevDate" class="w-full bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-indigo-400 focus:outline-none">
+                <option value="Tomorrow">Tomorrow</option>
+                <option value="In 3 days">In 3 Days</option>
+              </select>
+              <button @click="addMistake()" class="bg-indigo-600 text-xs px-4 rounded-lg font-bold">Log</button>
+            </div>
+          </div>
+          <div class="space-y-2 max-h-80 overflow-y-auto">
+            <template x-for="m in mistakes" :key="m.id">
+              <div class="bg-gray-950 p-4 rounded-xl border border-gray-855 flex justify-between items-center gap-4">
+                <div class="space-y-1">
+                  <h4 class="font-bold text-xs text-gray-200 uppercase font-mono" x-text="m.topic"></h4>
+                  <p class="text-xs text-gray-400" x-text="m.error"></p>
+                </div>
+                <div class="flex items-center space-x-3 shrink-0">
+                  <span class="text-[10px] font-mono bg-red-950/40 text-red-400 px-2.5 py-1 rounded-full border border-red-900/30" x-text="'Review: ' + m.date"></span>
+                  <button @click="mistakes = mistakes.filter(item => item.id !== m.id); saveLocalData();" class="text-gray-600 hover:text-red-400 text-sm font-bold">×</button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- VOCAB VAULT MODULE -->
+        <div x-show="activeTab === 'vocab'" x-transition class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl space-y-6">
+          <div class="flex justify-between items-center border-b border-gray-800 pb-4">
+            <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Lexicon Vault & Analytical Comprehension</h2>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-gray-950 p-3 rounded-xl border border-gray-855 items-end">
+            <input type="text" x-model="vWord" placeholder="Word" class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white focus:outline-none">
+            <input type="text" x-model="vMeaning" placeholder="Precise Definition" class="bg-gray-900 border border-gray-800 rounded-lg p-2 text-xs text-white focus:outline-none col-span-2">
+            <button @click="addVocab()" class="bg-indigo-600 text-xs py-2 rounded-lg font-bold uppercase">Vault It</button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto">
+            <template x-for="v in vocab">
+              <div class="bg-gray-950 p-4 rounded-xl border border-gray-855 relative">
+                <button @click="vocab = vocab.filter(item => item.word !== v.word); saveLocalData();" class="absolute top-2 right-3 text-gray-700 hover:text-red-400 text-sm font-bold">×</button>
+                <div class="text-sm font-bold text-white font-mono" x-text="v.word"></div>
+                <p class="text-xs text-gray-400 mt-1.5"><span class="text-gray-500 font-semibold font-mono">MEANING:</span> <span x-text="v.meaning"></span></p>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- PROGRESS EVAL METRICS -->
+        <div x-show="activeTab === 'eliteMetrics'" x-transition class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+       
