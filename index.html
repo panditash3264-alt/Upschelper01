@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ElitePrep UPSC Dashboard</title>
   
+  <!-- Tailwind CSS Engine -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  
+  <!-- Alpine.js Core Framework -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   
   <style>
@@ -23,83 +22,43 @@
   x-cloak
   x-data="{
     // ========================================================
-    // SECURITY CONFIGURATION
+    // LOCAL PIN ACCESS CONFIGURATION
     // ========================================================
-    allowedUserEmail: 'panditashwani34@gmail.com',
+    correctPin: '1234', // 👈 CHOOSE ANY 4-DIGIT PIN YOU WANT HERE!
+    inputPin: '',
     
     userAuthenticated: false,
     accessDenied: false,
-    currentUser: null,
     activeTab: 'core',
 
-    // Firebase Core Initialization Setup
     init() {
-      const firebaseConfig = {
-        apiKey: 'AIzaSyCSUbwjYdxdGPUIjN_VYvcCcc6jLqflF5c',
-        authDomain: 'upsc-web-1daf2.firebaseapp.com',
-        projectId: 'upsc-web-1daf2',
-        storageBucket: 'upsc-web-1daf2.firebasestorage.app',
-        messagingSenderId: '986435590514',
-        appId: '1:986435590514:web:784d4074a43b042890e5eb'
-      };
-
-      // Initialize Firebase cleanly
-      firebase.initializeApp(firebaseConfig);
-        
-      // Read the incoming Google Redirect data tokens immediately upon page reload
-      firebase.auth().getRedirectResult()
-        .then((result) => {
-          if (result && result.user) {
-            this.handleUserSession(result.user);
-          }
-        })
-        .catch(err => alert('Redirect Error: ' + err.message));
-
-      // Listen to ongoing authentication state shifts smoothly
-      firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-          this.handleUserSession(user);
-        } else {
-          this.userAuthenticated = false;
-          this.currentUser = null;
-        }
-      });
-    },
-
-    // Secure helper logic block to verify your email profile
-    handleUserSession(user) {
-      if (user.email.toLowerCase() === this.allowedUserEmail.toLowerCase()) {
-        this.currentUser = user;
+      // Check if a valid session already exists on this phone
+      if (sessionStorage.getItem('upsc_authenticated') === 'true') {
         this.userAuthenticated = true;
-        this.accessDenied = false;
         this.loadLocalData();
-      } else {
-        this.accessDenied = true;
-        this.userAuthenticated = false;
-        firebase.auth().signOut();
       }
     },
 
-        loginWithGoogle() {
-      // Create the official Google provider structure
-      const provider = new firebase.auth.GoogleAuthProvider();
-      
-      // Forces the browser to handle the session smoothly on mobile devices
-      provider.setCustomParameters({ prompt: 'select_account' });
-      
-      firebase.auth().signInWithRedirect(provider)
-        .catch(err => alert('Authentication Failed: ' + err.message));
+    verifyAccessPin() {
+      if (this.inputPin === this.correctPin) {
+        this.userAuthenticated = true;
+        this.accessDenied = false;
+        sessionStorage.setItem('upsc_authenticated', 'true');
+        this.loadLocalData();
+      } else {
+        this.accessDenied = true;
+        this.inputPin = '';
+      }
     },
 
     logoutSession() {
-      firebase.auth().signOut().then(() => {
-        this.userAuthenticated = false;
-        window.location.reload();
-      });
+      sessionStorage.removeItem('upsc_authenticated');
+      this.userAuthenticated = false;
+      window.location.reload();
     },
 
     // ========================================================
-    // PERSISTENCE ENGINE (LOCAL BACKUP)
+    // PERSISTENCE ENGINE (LOCAL DEVICE BACKUP)
     // ========================================================
     tasks: [],
     newTask: '', newSubject: 'General',
@@ -115,11 +74,11 @@
         vocab: this.vocab, mainsDone: this.mainsDone, essayDone: this.essayDone,
         anthroSyllabus: this.anthroSyllabus
       };
-      localStorage.setItem('elite_upsc_data_' + this.currentUser.uid, JSON.stringify(dataStoreObj));
+      localStorage.setItem('elite_upsc_secure_data', JSON.stringify(dataStoreObj));
     },
 
     loadLocalData() {
-      const saved = localStorage.getItem('elite_upsc_data_' + this.currentUser.uid);
+      const saved = localStorage.getItem('elite_upsc_secure_data');
       if (saved) {
         const parsed = JSON.parse(saved);
         this.tasks = parsed.tasks || [];
@@ -130,6 +89,7 @@
         this.essayDone = parsed.essayDone || 0;
         this.anthroSyllabus = parsed.anthroSyllabus || 0;
       } else {
+        // Hydrate defaults if it's the first login session
         this.tasks = [
           { id: 1, text: 'Analyze UPSC GS Paper 1 Economy trends', subject: 'Polity' },
           { id: 2, text: 'Revise Anthropology Paper 1 Physical Anthro section', subject: 'Anthro' }
@@ -193,54 +153,71 @@
   }"
 >
 
+  <!-- GATE KEEPER PIN VIEW -->
   <div x-show="!userAuthenticated" class="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-gray-950 via-slate-900 to-gray-950">
     <div class="max-w-md w-full bg-gray-900/50 backdrop-blur-md border border-gray-800 p-8 rounded-3xl shadow-2xl text-center space-y-6">
       <div class="h-16 w-16 bg-indigo-600 rounded-2xl flex items-center justify-center font-bold text-2xl text-white tracking-widest mx-auto shadow-xl">U</div>
+      
       <div class="space-y-2">
         <h2 class="text-xl font-extrabold tracking-tight text-white">UPSC Elite Control Hub</h2>
-        <p class="text-xs text-gray-400">Authenticate via Google to unlock your preparation data arrays.</p>
+        <p class="text-xs text-gray-400">Enter your secure local PIN password to access your tracking workstation metrics dashboard.</p>
       </div>
-      <div x-show="accessDenied" x-transition class="bg-red-950/40 border border-red-900 text-red-400 p-3 rounded-xl text-xs font-medium">
-        🛑 Access Denied: This account profile is unauthorized.
+
+      <div class="space-y-3">
+        <input 
+          type="password" 
+          maxlength="8"
+          x-model="inputPin" 
+          @keydown.enter="verifyAccessPin()"
+          placeholder="••••" 
+          class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3.5 text-center text-lg tracking-widest font-mono text-indigo-400 focus:outline-none focus:border-indigo-500"
+        >
+        
+        <div x-show="accessDenied" x-transition class="bg-red-950/40 border border-red-900 text-red-400 p-3 rounded-xl text-xs font-medium">
+          🛑 Invalid Security PIN. Access Refused.
+        </div>
+
+        <button @click="verifyAccessPin()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-3 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-lg">
+          Unlock Station
+        </button>
       </div>
-      <button @click="loginWithGoogle()" class="w-full flex items-center justify-center space-x-3 bg-white hover:bg-gray-100 text-gray-900 px-5 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition duration-150 shadow-lg">
-        <span>Sign In With Google</span>
-      </button>
     </div>
   </div>
 
+  <!-- AUTHENTICATED COMMAND CENTER WORKSPACE -->
   <div x-show="userAuthenticated" class="min-h-screen flex flex-col">
     <header class="bg-gray-900/80 backdrop-blur-md border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-50">
       <div class="flex items-center space-x-3">
         <div class="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg">U</div>
         <div>
           <h1 class="text-sm font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">UPSC Elite Engine v2.0</h1>
-          <p class="text-[10px] text-gray-500 font-mono" x-text="'Authorized: ' + currentUser?.email"></p>
+          <p class="text-[10px] text-gray-500 font-mono">Secure Standalone Workstation Active</p>
         </div>
       </div>
       <div class="flex items-center space-x-3">
         <span class="px-2.5 py-1 rounded-full bg-indigo-950/50 border border-indigo-800 text-indigo-400 font-mono text-xs" x-text="studyHours + ' Hours Logged'"></span>
-        <button @click="logoutSession()" class="text-xs font-mono text-gray-500 hover:text-red-400 transition">Disconnect</button>
+        <button @click="logoutSession()" class="text-xs font-mono text-gray-500 hover:text-red-400 transition">Lock Console</button>
       </div>
     </header>
 
     <div class="flex flex-col lg:flex-row flex-1">
       <nav class="w-full lg:w-64 bg-gray-900/40 border-b lg:border-b-0 lg:border-r border-gray-800 p-4 space-y-1.5 shrink-0">
-        <button @click="activeTab = 'core'" :class="activeTab === 'core' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+        <button @click="activeTab = 'core'" :class="activeTab === 'core' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
           <span>⏱️</span> <span>Core Target Workspace</span>
         </button>
-        <button @click="activeTab = 'intelligence'" :class="activeTab === 'intelligence' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+        <button @click="activeTab = 'intelligence'" :class="activeTab === 'intelligence' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
           <span>📊</span> <span>Mistake Tracker Dashboard</span>
         </button>
-        <button @click="activeTab = 'vocab'" :class="activeTab === 'vocab' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+        <button @click="activeTab = 'vocab'" :class="activeTab === 'vocab' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
           <span>📖</span> <span>Vocabulary Knowledge Vault</span>
         </button>
-        <button @click="activeTab = 'eliteMetrics'" :class="activeTab === 'eliteMetrics' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
+        <button @click="activeTab = 'eliteMetrics'" :class="activeTab === 'eliteMetrics' ? 'bg-indigo-600/10 border-l-2 border-indigo-500 text-indigo-400 font-semibold' : 'text-gray-400'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-r-lg text-left text-xs font-medium transition">
           <span>✍️</span> <span>UPSC Elite Metrics Suite</span>
         </button>
       </nav>
 
       <main class="flex-1 p-4 md:p-6 overflow-y-auto">
+        <!-- TAB 1: CORE WORKSPACE -->
         <div x-show="activeTab === 'core'" x-transition class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl">
@@ -281,6 +258,7 @@
           </div>
         </div>
 
+        <!-- TAB 2: MISTAKE LOG -->
         <div x-show="activeTab === 'intelligence'" x-transition class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl space-y-6">
           <div class="border-b border-gray-800 pb-4">
             <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Mock Mistake Analytics</h2>
@@ -312,6 +290,7 @@
           </div>
         </div>
 
+        <!-- TAB 3: VOCAB VAULT -->
         <div x-show="activeTab === 'vocab'" x-transition class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl space-y-6">
           <div class="flex justify-between items-center border-b border-gray-800 pb-4">
             <h2 class="text-sm font-bold text-indigo-400 tracking-wider uppercase">Lexicon Vault</h2>
@@ -332,6 +311,7 @@
           </div>
         </div>
 
+        <!-- TAB 4: METRICS -->
         <div x-show="activeTab === 'eliteMetrics'" x-transition class="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl space-y-5 xl:col-span-2">
             <h2 class="text-xs font-bold text-indigo-400 tracking-widest uppercase font-mono border-b border-gray-800 pb-3">Tracking Matrix</h2>
@@ -350,4 +330,27 @@
                 <input type="number" x-model="essayDone" @input="saveLocalData()" class="w-12 bg-gray-900 border border-gray-800 rounded p-1 text-center text-teal-400 font-bold text-xs">
               </div>
               <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
-                <div class="bg-teal-500 h-full transition-all duration-300" :style="'width: ' + ((e
+                <div class="bg-teal-500 h-full transition-all duration-300" :style="'width: ' + ((essayDone / essayTarget) * 100) + '%'"></div>
+              </div>
+            </div>
+            <div class="bg-gray-950 p-4 rounded-xl border border-gray-855 space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-medium text-amber-400">Anthropology Support Optional Completion</span>
+                <input type="number" min="0" max="100" x-model="anthroSyllabus" @input="saveLocalData()" class="w-12 bg-gray-900 border border-gray-800 rounded p-1 text-center text-amber-400 font-bold text-xs">
+              </div>
+              <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
+                <div class="bg-amber-500 h-full transition-all duration-300" :style="'width: ' + anthroSyllabus + '%'"></div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-900 border border-gray-800 p-6 rounded-2xl shadow-xl bg-gradient-to-b from-gray-900 to-gray-950">
+            <h2 class="text-xs font-bold text-indigo-400 tracking-widest uppercase font-mono border-b border-gray-800 pb-3 mb-4">Core Knowledge Hub</h2>
+            <p class="text-xs text-gray-400 leading-relaxed">Your study variables sandboxed securely onto this local mobile device storage layer. Clean cache or system data wipes will reset local values.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>
