@@ -70,7 +70,7 @@
       });
     },
 
-    loginWithGoogle() {
+    loginWithRedirect {
       const provider = new firebase.auth.GoogleAuthProvider();
       firebase.auth().signInWithPopup(provider)
         .catch(err => alert('Authentication Failed: ' + err.message));
