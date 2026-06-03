@@ -3,309 +3,491 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPSC Mission Control 2.0</title>
+    <title>UPSC Mission Control - Full Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- DESIGN TOKENS --- */
         :root {
-            --bg-body: #0f172a; --bg-surface: #1e293b; --bg-surface-hover: #334155;
-            --accent-primary: #f59e0b; --accent-primary-hover: #d97706;
-            --text-main: #f8fafc; --text-muted: #94a3b8; --border-color: #334155;
-            --status-danger: #ef4444; --radius-md: 8px; --radius-lg: 12px;
+            --bg-dark: #0f172a; --bg-card: #1e293b; --bg-hover: #334155;
+            --gold: #f59e0b; --text-light: #f8fafc; --text-muted: #94a3b8;
+            --border: #334155; --red: #ef4444; --green: #10b981;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; line-height: 1.5; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-dark); color: var(--text-light); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
 
-        /* --- NOSCRIPT WARNING --- */
-        .js-warning { background: var(--status-danger); color: white; padding: 1.5rem; text-align: center; font-weight: bold; border-radius: var(--radius-lg); margin: 1.5rem; border: 2px solid white; }
-
-        /* --- LAYOUT --- */
-        .sidebar { width: 280px; background-color: var(--bg-surface); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000; transition: transform 0.3s ease; }
-        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); }
-        .sidebar-header h2 { font-size: 1.1rem; color: var(--text-main); }
-        .sidebar-header span { color: var(--accent-primary); font-size: 0.85rem; display: block; font-weight: normal; }
+        /* HEADER & NAVIGATION */
+        .app-header { background: var(--bg-card); padding: 1rem 1.5rem; display: flex; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .app-header h1 { font-size: 1.2rem; font-weight: 600; color: var(--gold); }
         
-        .nav-links { display: flex; flex-direction: column; padding: 1rem 0; }
-        .nav-item { padding: 0.75rem 1.5rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 12px; border-left: 3px solid transparent; cursor: pointer; font-weight: 500; background: none; border-top: none; border-right: none; border-bottom: none; text-align: left; width: 100%; font-size: 1rem; }
-        .nav-item.active { background-color: rgba(245, 158, 11, 0.1); color: var(--accent-primary); border-left-color: var(--accent-primary); }
+        .tab-nav { display: flex; gap: 10px; padding: 1rem; background: var(--bg-dark); overflow-x: auto; border-bottom: 1px solid var(--border); }
+        .tab-btn { padding: 0.6rem 1.2rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted); border-radius: 8px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .tab-btn.active { background: rgba(245, 158, 11, 0.1); color: var(--gold); border-color: var(--gold); }
 
-        .main-content { flex: 1; margin-left: 280px; padding: 2rem; max-width: 900px; }
-        .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; }
-        .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
-        
-        @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { margin-left: 0; padding: 1rem; }
-            .mobile-menu-btn { display: block; margin-bottom: 1rem; }
-            .mobile-overlay.active { display: block; }
-        }
-
-        /* --- COMPONENTS --- */
-        .tab-pane { display: none; }
-        .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
+        /* MAIN CONTENT AREA */
+        .container { padding: 1.5rem 1rem; max-width: 800px; margin: 0 auto; width: 100%; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .card-title { font-size: 1.1rem; font-weight: 600; }
+        /* CARDS & UI ELEMENTS */
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        .timer-box { text-align: center; border: 1px solid var(--gold); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; background: rgba(245, 158, 11, 0.05); }
+        .timer-time { font-size: 2.2rem; font-weight: 700; color: var(--text-light); margin-top: 0.5rem; font-variant-numeric: tabular-nums; }
 
         .input-group { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
-        .input-control { flex: 1; min-width: 150px; padding: 0.75rem; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); outline: none; }
-        .btn-primary { background: var(--accent-primary); color: #000; border: none; padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
-        .btn-icon { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
+        .input-control { flex: 1; min-width: 120px; padding: 0.8rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; color: var(--text-light); outline: none; }
+        .input-control:focus { border-color: var(--gold); }
+        .btn-primary { background: var(--gold); color: #000; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-primary:active { transform: scale(0.98); }
 
-        .timer-box { text-align: center; border: 1px solid var(--accent-primary); padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; background: rgba(245, 158, 11, 0.05); }
-        .timer-title { color: var(--accent-primary); font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem; }
-        .timer-time { font-size: 2.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-        
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .stat-box { padding: 1.2rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); }
-        .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-        .stat-value { font-size: 2rem; font-weight: 700; margin-top: 0.5rem; }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.8rem; background: var(--bg-dark); }
+        .badge { background: var(--border); color: var(--text-muted); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; margin-right: 8px; font-weight: 600; }
+        .delete-btn { background: transparent; border: none; color: var(--red); font-size: 1.2rem; font-weight: bold; cursor: pointer; padding: 0.2rem 0.5rem; }
 
-        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 0.75rem; background: var(--bg-body); }
-        .badge { background: var(--border-color); color: var(--text-muted); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 8px; font-weight: 600; }
-        .chart-container { position: relative; height: 250px; width: 100%; }
+        /* ERROR BANNER */
+        #errorBanner { display: none; background: var(--red); color: white; padding: 1rem; text-align: center; font-weight: bold; font-size: 0.9rem; }
     </style>
 </head>
 <body>
 
-    <noscript>
-        <div class="js-warning">
-            ⚠️ SYSTEM ERROR: JAVASCRIPT BLOCKED ⚠️<br><br>
-            Your current app is blocking this dashboard from running.<br>
-            Please close this viewer, long-press the file, select "Open With...", and choose <b>Google Chrome</b>.
-        </div>
-    </noscript>
+    <div id="errorBanner"></div>
 
-    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
-    
-    <nav class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>UPSC Mission Control</h2>
-            <span>Foundation Version</span>
-        </div>
-        <div class="nav-links">
-            <button class="nav-item active" data-target="tab-dash">Dashboard</button>
-            <button class="nav-item" data-target="tab-mock">Mock Tests</button>
-        </div>
-    </nav>
+    <header class="app-header">
+        <h1>UPSC Mission Control</h1>
+    </header>
 
-    <main class="main-content">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰ Menu</button>
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="App.switchTab('tab-dash', this)">Dashboard</button>
+        <button class="tab-btn" onclick="App.switchTab('tab-syl', this)">Syllabus</button>
+        <button class="tab-btn" onclick="App.switchTab('tab-notes', this)">Notes</button>
+        <button class="tab-btn" onclick="App.switchTab('tab-ca', this)">Current Affairs</button>
+        <button class="tab-btn" onclick="App.switchTab('tab-rev', this)">Revision</button>
+        <button class="tab-btn" onclick="App.switchTab('tab-tests', this)">Mock Tests</button>
+    </div>
+
+    <main class="container">
         
-        <section id="tab-dash" class="tab-pane active">
-            <h1 style="margin-bottom: 0.5rem;">Command Center</h1>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;" id="currentDateDisplay">Loading Date...</p>
-
+        <section id="tab-dash" class="view-section active">
             <div class="timer-box">
-                <div class="timer-title">Target: Prelims (May 23, 2027)</div>
-                <div class="timer-time" id="countdownDisplay">Loading Timer...</div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-label">Daily Tasks</div>
-                    <div class="stat-value" id="taskStat">0 / 0</div>
-                </div>
+                <div style="color: var(--gold); font-size: 0.85rem; font-weight: 600; letter-spacing: 1px;">TARGET: PRELIMS (MAY 23, 2027)</div>
+                <div class="timer-time" id="countdownDisplay">Initializing...</div>
             </div>
 
             <div class="card">
-                <div class="card-header"><span class="card-title">Subject Focus</span></div>
-                <div class="chart-container"><canvas id="taskChart"></canvas></div>
-            </div>
-
-            <div class="card">
-                <div class="card-header"><span class="card-title">Today's Missions</span></div>
+                <div class="card-title">Daily Missions <span id="taskCounter" style="color: var(--gold);">0/0</span></div>
                 <div class="input-group">
-                    <select id="taskExam" class="input-control" onchange="updateSubjectOptions('taskExam', 'taskSubject')">
+                    <select id="examSelect" class="input-control" onchange="App.updateSubjects()" style="flex: 0.5;">
                         <option value="Prelims">Prelims</option>
                         <option value="Mains">Mains</option>
                     </select>
-                    <select id="taskSubject" class="input-control"></select>
-                    <input type="text" id="taskInput" class="input-control" placeholder="Specific topic..." style="flex: 2;">
+                    <select id="subjectSelect" class="input-control" style="flex: 0.5;"></select>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="taskInput" class="input-control" placeholder="What topic are you studying today?">
                     <button class="btn-primary" onclick="App.addTask()">Add Task</button>
                 </div>
                 <div id="taskList"></div>
             </div>
-        </section>
 
-        <section id="tab-mock" class="tab-pane">
-            <div class="card">
-                <div class="card-header"><span class="card-title">Performance Trend</span></div>
-                <div class="chart-container"><canvas id="mockChart"></canvas></div>
+            <div class="card" id="chartCard">
+                <div class="card-title">Subject Focus</div>
+                <div style="position: relative; height: 220px; width: 100%;"><canvas id="taskChart"></canvas></div>
             </div>
         </section>
+
+        <section id="tab-syl" class="view-section">
+            <div class="card">
+                <div class="card-title">GS Completion <span id="sylProgress" style="color: var(--gold);">0%</span></div>
+                
+                <div style="margin-bottom: 1rem; color: var(--gold); font-weight: 600;">GS Paper 1</div>
+                <div class="list-item"><label style="display:flex; align-items:center; gap:10px; width:100%; cursor:pointer;"><input type="checkbox" id="s1" class="syl-cb" onchange="App.saveSyl()" style="width:18px; height:18px;"> Art & Culture</label></div>
+                <div class="list-item"><label style="display:flex; align-items:center; gap:10px; width:100%; cursor:pointer;"><input type="checkbox" id="s2" class="syl-cb" onchange="App.saveSyl()" style="width:18px; height:18px;"> Modern Indian History</label></div>
+                <div class="list-item"><label style="display:flex; align-items:center; gap:10px; width:100%; cursor:pointer;"><input type="checkbox" id="s3" class="syl-cb" onchange="App.saveSyl()" style="width:18px; height:18px;"> World & Indian Geography</label></div>
+                
+                <div style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--gold); font-weight: 600;">GS Paper 2</div>
+                <div class="list-item"><label style="display:flex; align-items:center; gap:10px; width:100%; cursor:pointer;"><input type="checkbox" id="s4" class="syl-cb" onchange="App.saveSyl()" style="width:18px; height:18px;"> Indian Polity & Constitution</label></div>
+                <div class="list-item"><label style="display:flex; align-items:center; gap:10px; width:100%; cursor:pointer;"><input type="checkbox" id="s5" class="syl-cb" onchange="App.saveSyl()" style="width:18px; height:18px;"> International Relations</label></div>
+            </div>
+        </section>
+
+        <section id="tab-notes" class="view-section">
+            <div class="card">
+                <div class="card-title">Add Note</div>
+                <div class="input-group">
+                    <input type="text" id="noteTitle" class="input-control" placeholder="Note Title / Topic">
+                </div>
+                <div class="input-group">
+                    <textarea id="noteContent" class="input-control" placeholder="Write your notes here..." style="min-height: 120px; resize: vertical;"></textarea>
+                </div>
+                <button class="btn-primary" onclick="App.addNote()">Save Note</button>
+            </div>
+            <div id="noteList"></div>
+        </section>
+
+        <section id="tab-ca" class="view-section">
+            <div class="card">
+                <div class="card-title">Log News Event</div>
+                <div class="input-group">
+                    <input type="text" id="caTitle" class="input-control" placeholder="Headline" style="flex: 0.7;">
+                    <select id="caPaper" class="input-control" style="flex: 0.3;">
+                        <option>Pre</option><option>GS1</option><option>GS2</option><option>GS3</option><option>GS4</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <textarea id="caContent" class="input-control" placeholder="Summary / Key points..." style="min-height: 80px; resize: vertical;"></textarea>
+                </div>
+                <button class="btn-primary" onclick="App.addCA()">Save Record</button>
+            </div>
+            <div id="caList"></div>
+        </section>
+
+        <section id="tab-rev" class="view-section">
+            <div class="card">
+                <div class="card-title">Schedule Revision</div>
+                <div class="input-group">
+                    <input type="text" id="revTopic" class="input-control" placeholder="Topic to revise...">
+                    <input type="date" id="revDate" class="input-control">
+                    <button class="btn-primary" onclick="App.addRev()">Schedule</button>
+                </div>
+            </div>
+            <div id="revList"></div>
+        </section>
+
+        <section id="tab-tests" class="view-section">
+            <div class="card">
+                <div class="card-title">Log Mock Test</div>
+                <div class="input-group">
+                    <input type="text" id="testName" class="input-control" placeholder="Test Name (e.g., Vision GS 1)">
+                    <input type="number" id="testScore" class="input-control" placeholder="Score" style="flex: 0.4;">
+                    <button class="btn-primary" onclick="App.addTest()">Log Score</button>
+                </div>
+            </div>
+            <div id="testList"></div>
+        </section>
+
     </main>
 
 <script>
-    // 0. Emergency Crash Reporter
-    window.onerror = function(msg) {
-        document.getElementById('countdownDisplay').innerText = "JS CRASH: " + msg;
-    };
-
-    // 1. Hardened Local Storage (Prevents corrupted data from crashing the app)
+    // 1. IN-MEMORY FALLBACK SYSTEM
+    let fallbackMemory = {};
     const DB = {
-        get: (key, defaultValue) => {
+        get: (key, def) => {
             try {
-                const stored = localStorage.getItem(key);
-                if (!stored) return defaultValue;
-                const parsed = JSON.parse(stored);
-                // If previous data got corrupted (e.g., saved as an object instead of array), reset it.
-                if (Array.isArray(defaultValue) && !Array.isArray(parsed)) return defaultValue;
-                if (parsed === null) return defaultValue;
-                return parsed;
+                let val = localStorage.getItem(key);
+                if (val) return JSON.parse(val);
+                return fallbackMemory[key] || def;
             } catch (e) {
-                return defaultValue;
+                return fallbackMemory[key] || def;
             }
         },
-        set: (key, value) => {
-            try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+        set: (key, val) => {
+            try {
+                localStorage.setItem(key, JSON.stringify(val));
+            } catch (e) {
+                fallbackMemory[key] = val; 
+                document.getElementById('errorBanner').style.display = 'block';
+                document.getElementById('errorBanner').innerText = 'Warning: Local Storage is blocked by your viewer. Data will reset when closed. Open in Chrome to save permanently.';
+            }
         }
     };
 
+    // 2. STATE MANAGEMENT
     const State = {
-        tasks: DB.get('upsc_tasks', []),
-        mocks: DB.get('upsc_mocks', [])
+        tasks: DB.get('up_tasks', []),
+        notes: DB.get('up_notes', []),
+        tests: DB.get('up_tests', []),
+        syl: DB.get('up_syl', {}),
+        cas: DB.get('up_ca', []),
+        revs: DB.get('up_rev', [])
     };
 
-    let chartInstances = { task: null, mock: null };
-
+    // 3. DROPDOWN DATA
     const Subjects = {
         Prelims: ["History", "Polity", "Economy", "Geography", "Environment", "Science", "CSAT"],
-        Mains: ["GS 1", "GS 2", "GS 3", "GS 4", "Optional Subject", "Essay"]
+        Mains: ["GS 1", "GS 2", "GS 3", "GS 4", "Optional"]
     };
 
-    // --- UI NAVIGATION ---
-    function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('mobileOverlay').classList.toggle('active');
-    }
+    let chartInstance = null;
 
-    document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            
-            const targetId = e.target.getAttribute('data-target');
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            document.getElementById(targetId).classList.add('active');
-            
-            if (window.innerWidth <= 768) toggleSidebar();
-            App.renderCharts();
-        });
-    });
-
-    function updateSubjectOptions(examSelectId, subjectSelectId) {
-        try {
-            const exam = document.getElementById(examSelectId).value;
-            const subSelect = document.getElementById(subjectSelectId);
-            if (Subjects[exam] && subSelect) {
-                subSelect.innerHTML = Subjects[exam].map(sub => `<option value="${sub}">${sub}</option>`).join('');
-            }
-        } catch(e) { console.error("Dropdown error:", e); }
-    }
-
-    // --- MAIN LOGIC ---
+    // 4. CORE APPLICATION LOGIC
     const App = {
-        initTimer: () => {
-            try {
-                // Safe date fetch
-                document.getElementById('currentDateDisplay').innerText = new Date().toDateString();
-            } catch(e) {}
+        
+        switchTab: (tabId, btnElement) => {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
             
-            const targetDate = new Date(2027, 4, 23).getTime(); 
-            const calculateTime = () => {
-                const now = new Date().getTime();
-                const diff = targetDate - now;
-                if (diff < 0) return document.getElementById('countdownDisplay').innerText = "0d 0h 0m";
-                
+            if(tabId === 'tab-dash') App.renderChart();
+        },
+
+        updateSubjects: () => {
+            const exam = document.getElementById('examSelect').value;
+            const subSelect = document.getElementById('subjectSelect');
+            subSelect.innerHTML = Subjects[exam].map(s => `<option value="${s}">${s}</option>`).join('');
+        },
+
+        startTimer: () => {
+            const target = new Date(2027, 4, 23).getTime(); 
+            const update = () => {
+                const diff = target - new Date().getTime();
+                if (diff < 0) { document.getElementById('countdownDisplay').innerText = "IT'S EXAM DAY"; return; }
                 const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
                 const m = Math.floor((diff / 1000 / 60) % 60);
                 document.getElementById('countdownDisplay').innerText = `${d}d ${h}h ${m}m`;
             };
-            calculateTime();
-            setInterval(calculateTime, 60000);
+            update();
+            setInterval(update, 60000);
         },
 
+        // --- TASKS ---
         addTask: () => {
-            try {
-                const text = document.getElementById('taskInput').value.trim();
-                const subject = document.getElementById('taskSubject').value;
-                if (!text) return;
+            const input = document.getElementById('taskInput');
+            const subject = document.getElementById('subjectSelect').value;
+            if (!input.value.trim()) return;
 
-                State.tasks.push({ text, subject, done: false, id: Date.now() });
-                DB.set('upsc_tasks', State.tasks);
-                document.getElementById('taskInput').value = '';
-                App.renderTasks();
-                App.renderCharts();
-            } catch(e) { alert("Error adding task: " + e.message); }
+            State.tasks.push({ id: Date.now(), text: input.value.trim(), subject: subject, done: false });
+            DB.set('up_tasks', State.tasks);
+            input.value = '';
+            App.renderTasks();
         },
-
         toggleTask: (id) => {
             const task = State.tasks.find(t => t.id === id);
-            if (task) { task.done = !task.done; DB.set('upsc_tasks', State.tasks); App.renderTasks(); }
+            if (task) { task.done = !task.done; DB.set('up_tasks', State.tasks); App.renderTasks(); }
         },
-
         deleteTask: (id) => {
             State.tasks = State.tasks.filter(t => t.id !== id);
-            DB.set('upsc_tasks', State.tasks);
+            DB.set('up_tasks', State.tasks);
             App.renderTasks();
-            App.renderCharts();
         },
-
         renderTasks: () => {
             const list = document.getElementById('taskList');
             list.innerHTML = State.tasks.map(t => `
-                <div class="list-item">
-                    <div style="display:flex; align-items:center; gap:10px; ${t.done ? 'opacity:0.5; text-decoration:line-through;' : ''}">
-                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="App.toggleTask(${t.id})">
-                        <span><span class="badge">${t.subject}</span> ${t.text}</span>
+                <div class="list-item" style="opacity: ${t.done ? '0.5' : '1'};">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" style="width:18px; height:18px;" ${t.done ? 'checked' : ''} onchange="App.toggleTask(${t.id})">
+                        <span style="${t.done ? 'text-decoration:line-through' : ''}"><span class="badge">${t.subject}</span> ${t.text}</span>
                     </div>
-                    <button class="btn-icon" onclick="App.deleteTask(${t.id})">✕</button>
+                    <button class="delete-btn" onclick="App.deleteTask(${t.id})">✕</button>
                 </div>
             `).join('');
 
             const completed = State.tasks.filter(t => t.done).length;
-            document.getElementById('taskStat').innerText = `${completed} / ${State.tasks.length}`;
+            document.getElementById('taskCounter').innerText = `${completed}/${State.tasks.length}`;
+            App.renderChart();
         },
 
-        renderCharts: () => {
-            try {
-                const taskCtx = document.getElementById('taskChart');
-                if (taskCtx && window.getComputedStyle(taskCtx.parentElement.parentElement).display !== 'none') {
-                    if (chartInstances.task) chartInstances.task.destroy();
-                    const subjs = {};
-                    State.tasks.forEach(t => subjs[t.subject] = (subjs[t.subject] || 0) + 1);
-                    chartInstances.task = new Chart(taskCtx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: Object.keys(subjs).length ? Object.keys(subjs) : ['None'],
-                            datasets: [{ data: Object.keys(subjs).length ? Object.values(subjs) : [1], backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#1e293b'], borderWidth: 0 }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#f8fafc' } } } }
-                    });
+        // --- CHARTS ---
+        renderChart: () => {
+            if (typeof Chart === 'undefined') {
+                document.getElementById('chartCard').style.display = 'none';
+                return;
+            }
+            const ctx = document.getElementById('taskChart');
+            if (!ctx || window.getComputedStyle(ctx.parentElement.parentElement).display === 'none') return;
+            if (chartInstance) chartInstance.destroy();
+
+            const counts = {};
+            State.tasks.forEach(t => counts[t.subject] = (counts[t.subject] || 0) + 1);
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(counts).length ? Object.keys(counts) : ['No Tasks'],
+                    datasets: [{
+                        data: Object.keys(counts).length ? Object.values(counts) : [1],
+                        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#1e293b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#f8fafc' } } } }
+            });
+        },
+
+        // --- SYLLABUS ---
+        saveSyl: () => {
+            const boxes = document.querySelectorAll('.syl-cb');
+            let checked = 0;
+            boxes.forEach(b => {
+                State.syl[b.id] = b.checked;
+                if (b.checked) checked++;
+            });
+            DB.set('up_syl', State.syl);
+            const pct = boxes.length ? Math.round((checked / boxes.length) * 100) : 0;
+            document.getElementById('sylProgress').innerText = `${pct}%`;
+        },
+        loadSyl: () => {
+            const boxes = document.querySelectorAll('.syl-cb');
+            let checked = 0;
+            boxes.forEach(b => {
+                if (State.syl[b.id]) {
+                    b.checked = true;
+                    checked++;
                 }
-            } catch(e) { console.error("Chart Error", e); }
+            });
+            const pct = boxes.length ? Math.round((checked / boxes.length) * 100) : 0;
+            document.getElementById('sylProgress').innerText = `${pct}%`;
         },
 
+        // --- NOTES ---
+        addNote: () => {
+            const title = document.getElementById('noteTitle').value.trim();
+            const content = document.getElementById('noteContent').value.trim();
+            if (!title || !content) return;
+
+            State.notes.unshift({ id: Date.now(), title, content, date: new Date().toLocaleDateString() });
+            DB.set('up_notes', State.notes);
+            
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteContent').value = '';
+            App.renderNotes();
+        },
+        deleteNote: (id) => {
+            State.notes = State.notes.filter(n => n.id !== id);
+            DB.set('up_notes', State.notes);
+            App.renderNotes();
+        },
+        renderNotes: () => {
+            document.getElementById('noteList').innerHTML = State.notes.map(n => `
+                <div class="card" style="padding: 1rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                        <strong style="color:var(--gold);">${n.title}</strong>
+                        <button class="delete-btn" onclick="App.deleteNote(${n.id})">✕</button>
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">${n.date}</div>
+                    <div style="font-size:0.95rem; white-space:pre-wrap;">${n.content}</div>
+                </div>
+            `).join('');
+        },
+
+        // --- CURRENT AFFAIRS ---
+        addCA: () => {
+            const title = document.getElementById('caTitle').value.trim();
+            const paper = document.getElementById('caPaper').value;
+            const content = document.getElementById('caContent').value.trim();
+            if (!title) return;
+
+            State.cas.unshift({ id: Date.now(), title, paper, content, date: new Date().toLocaleDateString() });
+            DB.set('up_ca', State.cas);
+            
+            document.getElementById('caTitle').value = '';
+            document.getElementById('caContent').value = '';
+            App.renderCA();
+        },
+        deleteCA: (id) => {
+            State.cas = State.cas.filter(c => c.id !== id);
+            DB.set('up_ca', State.cas);
+            App.renderCA();
+        },
+        renderCA: () => {
+            document.getElementById('caList').innerHTML = State.cas.map(c => `
+                <div class="card" style="padding: 1rem;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                        <strong>${c.title}</strong>
+                        <button class="delete-btn" onclick="App.deleteCA(${c.id})">✕</button>
+                    </div>
+                    <div style="margin-bottom:10px;"><span class="badge">${c.paper}</span> <span style="font-size:0.75rem; color:var(--text-muted);">${c.date}</span></div>
+                    <div style="font-size:0.95rem; white-space:pre-wrap;">${c.content}</div>
+                </div>
+            `).join('');
+        },
+
+        // --- REVISION ---
+        addRev: () => {
+            const topic = document.getElementById('revTopic').value.trim();
+            const date = document.getElementById('revDate').value;
+            if (!topic || !date) return;
+
+            State.revs.push({ id: Date.now(), topic, date, done: false });
+            State.revs.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+            DB.set('up_rev', State.revs);
+            
+            document.getElementById('revTopic').value = '';
+            document.getElementById('revDate').value = '';
+            App.renderRevs();
+        },
+        toggleRev: (id) => {
+            const rev = State.revs.find(r => r.id === id);
+            if (rev) { rev.done = !rev.done; DB.set('up_rev', State.revs); App.renderRevs(); }
+        },
+        deleteRev: (id) => {
+            State.revs = State.revs.filter(r => r.id !== id);
+            DB.set('up_rev', State.revs);
+            App.renderRevs();
+        },
+        renderRevs: () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('revList').innerHTML = State.revs.map(r => {
+                const isDue = r.date <= today && !r.done;
+                return `
+                    <div class="list-item" style="border-left: 4px solid ${isDue ? 'var(--red)' : 'transparent'}; opacity: ${r.done ? '0.5' : '1'};">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" style="width:18px; height:18px;" ${r.done ? 'checked' : ''} onchange="App.toggleRev(${r.id})">
+                            <div>
+                                <div style="${r.done ? 'text-decoration:line-through' : ''}">${r.topic}</div>
+                                <div style="font-size:0.75rem; color:${isDue ? 'var(--red)' : 'var(--text-muted)'}; font-weight: 600;">${r.date} ${isDue ? '(DUE)' : ''}</div>
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="App.deleteRev(${r.id})">✕</button>
+                    </div>
+                `;
+            }).join('');
+        },
+
+        // --- TESTS ---
+        addTest: () => {
+            const name = document.getElementById('testName').value.trim();
+            const score = document.getElementById('testScore').value;
+            if (!name || !score) return;
+
+            State.tests.push({ id: Date.now(), name, score: Number(score), date: new Date().toLocaleDateString() });
+            DB.set('up_tests', State.tests);
+            
+            document.getElementById('testName').value = '';
+            document.getElementById('testScore').value = '';
+            App.renderTests();
+        },
+        deleteTest: (id) => {
+            State.tests = State.tests.filter(t => t.id !== id);
+            DB.set('up_tests', State.tests);
+            App.renderTests();
+        },
+        renderTests: () => {
+            document.getElementById('testList').innerHTML = State.tests.slice().reverse().map(t => `
+                <div class="list-item">
+                    <div>
+                        <strong>${t.name}</strong><br>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${t.date}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <span style="font-size: 1.5rem; font-weight:700; color:var(--green);">${t.score}</span>
+                        <button class="delete-btn" onclick="App.deleteTest(${t.id})">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        },
+
+        // --- BOOTLOADER ---
         boot: () => {
-            updateSubjectOptions('taskExam', 'taskSubject');
-            App.initTimer();
+            App.updateSubjects();
+            App.startTimer();
             App.renderTasks();
-            App.renderCharts();
+            App.loadSyl();
+            App.renderNotes();
+            App.renderCA();
+            App.renderRevs();
+            App.renderTests();
         }
     };
 
-    // Safe Bootloader
-    document.addEventListener('DOMContentLoaded', () => {
-        try { App.boot(); } 
-        catch(e) { document.getElementById('countdownDisplay').innerText = "Boot Error: " + e.message; }
-    });
+    // 5. INITIALIZATION
+    try { App.boot(); } catch(e) {}
+    document.addEventListener('DOMContentLoaded', () => { try { App.boot(); } catch(e) {} });
+
 </script>
 </body>
 </html>
