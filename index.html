@@ -3,298 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPSC Mission Control</title>
+    <title>UPSC Mission Control 2.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- MISSION CONTROL DARK THEME --- */
+        /* --- 1. DESIGN TOKENS (Variables) --- */
         :root {
-            --bg-dark: #0b1120; --bg-card: #151e32; --bg-hover: #1e293b; 
-            --accent-gold: #f59e0b; --accent-gold-hover: #d97706;
-            --text-light: #f8fafc; --text-muted: #94a3b8; --border-dark: #1e293b;
-            --stat-green: #10b981; --stat-red: #ef4444; --stat-purple: #8b5cf6; --stat-orange: #ea580c;
+            --bg-body: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-surface-hover: #334155;
+            --accent-primary: #f59e0b; /* Gold */
+            --accent-primary-hover: #d97706;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            
+            --status-success: #10b981;
+            --status-danger: #ef4444;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg-dark); color: var(--text-light); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
-        
-        .app-bar { background: var(--bg-dark); padding: 1rem 1.5rem; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-dark); position: sticky; top: 0; z-index: 100; }
-        .app-bar h1 { font-size: 1.2rem; font-weight: 600; letter-spacing: 0.5px; }
-        .menu-btn { background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
-        
-        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: var(--bg-dark); border-right: 1px solid var(--border-dark); transition: left 0.3s ease; z-index: 200; display: flex; flex-direction: column; overflow-y: auto; }
-        .sidebar.open { left: 0; }
-        .sidebar-header { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark); }
-        .sidebar-header h2 { font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
-        .sidebar-header h2 span { color: var(--accent-gold); font-size: 0.85rem; display: block; font-weight: 400; }
-        .close-btn { background: transparent; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; }
+        /* --- 2. GLOBAL RESET & BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
 
-        .nav-menu { padding: 1rem 0; display: flex; flex-direction: column; }
-        .nav-btn { background: transparent; border: none; padding: 1rem 1.5rem; cursor: pointer; font-weight: 500; color: var(--text-muted); text-align: left; font-size: 1rem; display: flex; align-items: center; gap: 15px; text-decoration: none; border-left: 3px solid transparent; }
-        .nav-btn.active { color: var(--accent-gold); border-left-color: var(--accent-gold); background: rgba(245, 158, 11, 0.05); }
+        /* --- 3. LAYOUT: SIDEBAR & MAIN CONTENT --- */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+        .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h2 { font-size: 1.1rem; color: var(--text-main); }
+        .sidebar-header span { color: var(--accent-primary); font-size: 0.85rem; display: block; font-weight: normal; }
         
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; z-index: 150; }
-        .overlay.active { display: block; }
+        .nav-links { display: flex; flex-direction: column; padding: 1rem 0; }
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            background: none;
+            border-top: none; border-right: none; border-bottom: none;
+            text-align: left;
+            width: 100%;
+            font-size: 1rem;
+        }
+        .nav-item:hover { background-color: var(--bg-surface-hover); color: var(--text-main); }
+        .nav-item.active {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--accent-primary);
+            border-left-color: var(--accent-primary);
+        }
 
-        .container { max-width: 800px; margin: 0 auto; padding: 1.5rem 1rem; width: 100%; }
-        .view-section { display: none; }
-        .view-section.active { display: block; animation: fadeUp 0.3s ease-out; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .dash-header { margin-bottom: 1.5rem; }
-        .dash-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.2rem; }
-        .dash-date { color: var(--text-muted); font-size: 0.95rem; }
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            max-width: 900px;
+        }
 
-        .gold-timer-card { background: #1a1511; border: 1px solid rgba(245, 158, 11, 0.3); padding: 1.5rem; border-radius: 12px; text-align: center; margin-bottom: 1.5rem; }
-        .gold-timer-card h3 { color: var(--accent-gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
-        .time-display { font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-        .quote-card { background: #1a1511; border: 1px solid rgba(245, 158, 11, 0.2); padding: 1.2rem; border-radius: 12px; text-align: center; margin-bottom: 1.5rem; color: var(--accent-gold); font-style: italic; font-weight: 500; }
+        /* Mobile Adjustments */
+        .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; }
+        .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 1rem; }
+            .mobile-menu-btn { display: block; margin-bottom: 1rem; }
+            .mobile-overlay.active { display: block; }
+        }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
-        .stat-card { background: var(--bg-card); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-dark); display: flex; flex-direction: column; position: relative; }
-        .stat-title { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem; }
-        .stat-value { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.2rem; }
-        .stat-sub { font-size: 0.8rem; color: var(--text-muted); }
-        .stat-icon { position: absolute; top: 1rem; right: 1rem; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: white; }
-        .icon-green { background: var(--stat-green); } .icon-red { background: var(--stat-red); } .icon-purple { background: var(--stat-purple); } .icon-orange { background: var(--stat-orange); }
+        /* --- 4. COMPONENTS --- */
+        .tab-pane { display: none; animation: fadeIn 0.3s ease; }
+        .tab-pane.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card { background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-dark); margin-bottom: 1.5rem; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
-        .card h2 { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .card-title { font-size: 1.1rem; font-weight: 600; }
+
+        /* Inputs & Buttons */
+        .input-group { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+        .input-control {
+            flex: 1; min-width: 150px;
+            padding: 0.75rem;
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            outline: none;
+        }
+        .input-control:focus { border-color: var(--accent-primary); }
+        .btn-primary {
+            background: var(--accent-primary);
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover { background: var(--accent-primary-hover); }
+        .btn-icon { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
+        .btn-icon:hover { color: var(--status-danger); }
+
+        /* Dashboard Specific */
+        .timer-box { text-align: center; border: 1px solid var(--accent-primary); padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; background: rgba(245, 158, 11, 0.05); }
+        .timer-title { color: var(--accent-primary); font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .timer-time { font-size: 2.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
         
-        .input-group { display: flex; gap: 10px; margin-bottom: 1.2rem; flex-wrap: wrap; }
-        input, select, textarea { flex: 1; padding: 0.85rem; border: 1px solid var(--border-dark); border-radius: 8px; outline: none; font-size: 0.95rem; color: var(--text-light); background: var(--bg-dark); min-width: 120px; }
-        input:focus, select:focus, textarea:focus { border-color: var(--accent-gold); }
-        button.action-btn { padding: 0.85rem 1.5rem; background: var(--accent-gold); color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-box { padding: 1.2rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); }
+        .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .stat-value { font-size: 2rem; font-weight: 700; margin-top: 0.5rem; }
+
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 0.75rem; background: var(--bg-body); }
+        .badge { background: var(--border-color); color: var(--text-muted); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 8px; font-weight: 600; }
         
-        .list-item { padding: 1rem; border: 1px solid var(--border-dark); border-radius: 8px; margin-bottom: 0.8rem; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; }
-        .badge { background: var(--border-dark); color: var(--text-muted); padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; margin-right: 10px; }
-        .delete-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
-        
-        .notepad-container { border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; margin-bottom: 1.2rem; }
-        .notepad-toolbar { background: var(--bg-dark); border-bottom: 1px solid var(--border-dark); padding: 0.6rem; display: flex; gap: 8px; flex-wrap: wrap; }
-        .tool-btn { background: var(--bg-card); border: 1px solid var(--border-dark); padding: 6px 12px; border-radius: 6px; cursor: pointer; color: var(--text-light); font-size: 0.9rem; }
-        .editor-area { padding: 1.2rem; min-height: 150px; outline: none; background: var(--bg-card); line-height: 1.7; font-size: 0.95rem; }
-        [contenteditable]:empty:before { content: attr(placeholder); color: var(--text-muted); }
-        .editor-area img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; border: 1px solid var(--border-dark); }
-        
-        .acc-btn { width: 100%; text-align: left; padding: 1.2rem; background: var(--bg-dark); border: 1px solid var(--border-dark); border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 0.5rem; color: var(--text-light); }
-        .acc-content { display: none; padding: 1rem; background: var(--bg-card); border: 1px solid var(--border-dark); border-top: none; border-radius: 0 0 8px 8px; margin-top: -0.5rem; margin-bottom: 1rem; }
-        .acc-content.show { display: block; }
-        .topic-list { list-style: none; }
-        .topic-list li { display: flex; align-items: center; gap: 12px; padding: 0.8rem 0; border-bottom: 1px solid var(--border-dark); }
-        .topic-list li:last-child { border-bottom: none; }
-        .chart-container { position: relative; height: 250px; width: 100%; margin-top: 1rem; }
+        /* Rich Text Editor */
+        .editor-toolbar { padding: 0.5rem; background: var(--bg-body); border: 1px solid var(--border-color); border-bottom: none; border-radius: var(--radius-md) var(--radius-md) 0 0; display: flex; gap: 5px; }
+        .editor-btn { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        .editor-area { min-height: 150px; padding: 1rem; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 0 0 var(--radius-md) var(--radius-md); margin-bottom: 1rem; outline: none; }
+        .editor-area:focus { border-color: var(--accent-primary); }
+
+        .chart-container { position: relative; height: 250px; width: 100%; }
     </style>
 </head>
 <body>
 
-    <div class="app-bar">
-        <button class="menu-btn" onclick="toggleMenu()">☰</button>
-        <h1>UPSC Mission Control</h1>
-    </div>
-
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-    <div class="sidebar" id="sidebar">
+    <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
+    
+    <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2>🎓 UPSC Mission <span>Control Centre</span></h2>
-            <button class="close-btn" onclick="toggleMenu()">✕</button>
+            <h2>UPSC Mission Control</h2>
+            <span>Foundation Version</span>
         </div>
-        <div class="nav-menu">
-            <button class="nav-btn active" onclick="switchTab('tab-dash', this)"><span>▦</span> Dashboard</button>
-            <button class="nav-btn" onclick="switchTab('tab-notes', this)"><span>📄</span> Notes</button>
-            <button class="nav-btn" onclick="switchTab('tab-syl', this)"><span>📋</span> Syllabus</button>
-            <button class="nav-btn" onclick="switchTab('tab-ca', this)"><span>📰</span> Current Affairs</button>
-            <button class="nav-btn" onclick="switchTab('tab-mock', this)"><span>📝</span> Mock Tests</button>
-            <button class="nav-btn" onclick="switchTab('tab-rev', this)"><span>🔄</span> Revision</button>
-            <button class="nav-btn" onclick="switchTab('tab-perf', this)"><span>📈</span> Performance</button>
+        <div class="nav-links">
+            <button class="nav-item active" data-target="tab-dash">Dashboard</button>
+            <button class="nav-item" data-target="tab-notes">Subject Notes</button>
+            <button class="nav-item" data-target="tab-syl">Syllabus Tracker</button>
+            <button class="nav-item" data-target="tab-ca">Current Affairs</button>
+            <button class="nav-item" data-target="tab-mock">Mock Tests</button>
+            <button class="nav-item" data-target="tab-rev">Revision Engine</button>
         </div>
-    </div>
+    </nav>
 
-    <div class="container">
+    <main class="main-content">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰ Menu</button>
         
-        <div id="tab-dash" class="view-section active">
-            <div class="dash-header">
-                <div class="dash-title">Mission Dashboard</div>
-                <div class="dash-date" id="current-date-display">Today</div>
+        <section id="tab-dash" class="tab-pane active">
+            <h1 style="margin-bottom: 0.5rem;">Command Center</h1>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;" id="currentDateDisplay"></p>
+
+            <div class="timer-box">
+                <div class="timer-title">Target: Prelims (May 23, 2027)</div>
+                <div class="timer-time" id="countdownDisplay">Loading...</div>
             </div>
-            <div class="gold-timer-card">
-                <h3>TARGET: MAY 23, 2027 (PRELIMS)</h3>
-                <div id="t-pre" class="time-display">Loading...</div>
-            </div>
-            <div class="quote-card">"Great things never came from comfort zones."</div>
+
             <div class="stats-grid">
-                <div class="stat-card"><div class="stat-icon icon-green">✓</div><div class="stat-title">Today's Tasks</div><div class="stat-value" id="stat-task-count">0/0</div><div class="stat-sub" id="stat-task-sub">No tasks yet</div></div>
-                <div class="stat-card"><div class="stat-icon icon-red">!</div><div class="stat-title">Due For Revision</div><div class="stat-value" id="stat-rev-count">0</div><div class="stat-sub">topics overdue</div></div>
-            </div>
-            <div class="card">
-                <div class="card-header"><h2>📖 Subject Focus</h2></div>
-                <div class="chart-container"><canvas id="taskPieChart"></canvas></div>
-            </div>
-            <div class="card">
-                <div class="card-header"><h2>🎯 Today's Mission</h2></div>
-                <div class="input-group" style="margin-bottom: 1rem;">
-                    <select id="task-exam" onchange="updateSubjectDropdown('task-exam', 'task-subject')" style="flex:0.3;"><option value="Prelims">Prelims</option><option value="Mains">Mains</option></select>
-                    <select id="task-subject" style="flex:0.4;"></select>
-                    <input type="text" id="task-in" placeholder="Specific topic..." style="flex:0.8;">
-                    <button class="action-btn" onclick="addTask()">Add</button>
+                <div class="stat-box">
+                    <div class="stat-label">Daily Tasks</div>
+                    <div class="stat-value" id="taskStat">0 / 0</div>
                 </div>
-                <div id="task-list-container"></div>
+                <div class="stat-box">
+                    <div class="stat-label">Revisions Due Today</div>
+                    <div class="stat-value" id="revStat" style="color: var(--status-danger);">0</div>
+                </div>
             </div>
-            <div class="card">
-                <div class="card-header"><h2>🏆 Revision Due Today</h2></div>
-                <div id="dash-rev-list"></div>
-            </div>
-        </div>
 
-        <div id="tab-notes" class="view-section">
             <div class="card">
-                <h2>📓 Create Subject Note</h2>
+                <div class="card-header"><span class="card-title">Subject Focus</span></div>
+                <div class="chart-container"><canvas id="taskChart"></canvas></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><span class="card-title">Today's Missions</span></div>
                 <div class="input-group">
-                    <select id="note-exam" onchange="updateSubjectDropdown('note-exam', 'note-subject')" style="flex: 0.3;"><option value="Prelims">Prelims</option><option value="Mains">Mains</option></select>
-                    <select id="note-subject" style="flex: 0.3;"></select>
-                    <input type="text" id="note-part" placeholder="Chapter Name" style="flex: 0.4;">
+                    <select id="taskExam" class="input-control" onchange="updateSubjectOptions('taskExam', 'taskSubject')">
+                        <option value="Prelims">Prelims</option>
+                        <option value="Mains">Mains</option>
+                    </select>
+                    <select id="taskSubject" class="input-control"></select>
+                    <input type="text" id="taskInput" class="input-control" placeholder="Specific topic..." style="flex: 2;">
+                    <button class="btn-primary" onclick="App.addTask()">Add Task</button>
                 </div>
-                <div class="notepad-container">
-                    <div class="notepad-toolbar">
-                        <button class="tool-btn" onclick="document.execCommand('bold', false, null)"><b>B</b></button>
-                        <button class="tool-btn" onclick="document.execCommand('italic', false, null)"><i>I</i></button>
-                        <button class="tool-btn" onclick="document.execCommand('insertUnorderedList', false, null)">• List</button>
-                    </div>
-                    <div id="master-notebook" class="editor-area" contenteditable="true" placeholder="Write comprehensive notes here..."></div>
-                </div>
-                <button class="action-btn" onclick="saveSubjectNote()">Save Note</button>
+                <div id="taskList"></div>
             </div>
-            <div id="notebook-ledger"></div>
-        </div>
+        </section>
 
-        <div id="tab-syl" class="view-section">
+        <section id="tab-notes" class="tab-pane">
             <div class="card">
-                <div class="card-header"><h2>📚 GS Syllabus Tracker</h2><span id="syl-prog" style="color:var(--accent-gold); font-size: 1.2rem; font-weight: 700;">0%</span></div>
-                <button class="acc-btn" onclick="toggleAcc(this)">GS 1: History, Culture & Geo ▼</button>
-                <div class="acc-content show">
-                    <ul class="topic-list" id="syl-1">
-                        <li><input type="checkbox" id="g1a" onchange="saveSyl()"><label>Indian Culture & Art</label></li>
-                        <li><input type="checkbox" id="g1b" onchange="saveSyl()"><label>Modern Indian History</label></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-ca" class="view-section">
-            <div class="card">
-                <h2>📰 Log Current Affair</h2>
+                <div class="card-header"><span class="card-title">Create Note</span></div>
                 <div class="input-group">
-                    <input type="text" id="ca-title" placeholder="News Headline">
-                    <select id="ca-paper" style="flex:0.3"><option>GS1</option><option>GS2</option><option>GS3</option><option>GS4</option><option>Pre</option></select>
+                    <select id="noteExam" class="input-control" onchange="updateSubjectOptions('noteExam', 'noteSubject')">
+                        <option value="Prelims">Prelims</option>
+                        <option value="Mains">Mains</option>
+                    </select>
+                    <select id="noteSubject" class="input-control"></select>
+                    <input type="text" id="noteTitle" class="input-control" placeholder="Chapter / Topic Name" style="flex: 2;">
                 </div>
-                <div class="input-group"><input type="text" id="ca-tags" placeholder="Tags (e.g. #Polity)"></div>
-                <div class="notepad-container">
-                    <div class="notepad-toolbar"><button class="tool-btn" onclick="document.execCommand('bold', false, null)"><b>B</b></button><button class="tool-btn" onclick="document.execCommand('insertUnorderedList', false, null)">• List</button></div>
-                    <div id="ca-notes" class="editor-area" contenteditable="true" placeholder="Quick news summaries..."></div>
+                
+                <div class="editor-toolbar">
+                    <button class="editor-btn" onclick="document.execCommand('bold', false, null)"><b>B</b></button>
+                    <button class="editor-btn" onclick="document.execCommand('italic', false, null)"><i>I</i></button>
+                    <button class="editor-btn" onclick="document.execCommand('insertUnorderedList', false, null)">• List</button>
                 </div>
-                <button class="action-btn" onclick="addCA()">Save Current Affair</button>
+                <div id="noteContent" class="editor-area" contenteditable="true" placeholder="Start typing..."></div>
+                
+                <button class="btn-primary" onclick="App.addNote()">Save Note</button>
             </div>
-            <div id="ca-list"></div>
-        </div>
+            <div id="notesList"></div>
+        </section>
 
-        <div id="tab-mock" class="view-section">
+        <section id="tab-syl" class="tab-pane">
             <div class="card">
-                <h2>📝 Log Mock Test</h2>
-                <div class="input-group">
-                    <input type="text" id="m-name" placeholder="Test Name">
-                    <select id="m-type" style="flex:0.4"><option>Prelims GS</option><option>Prelims CSAT</option><option>Mains GS</option><option>Optional</option></select>
-                    <input type="number" id="m-score" placeholder="Score" style="flex:0.3">
+                <div class="card-header">
+                    <span class="card-title">GS Syllabus Completion</span>
+                    <span id="sylProgress" style="color: var(--accent-primary); font-weight: bold; font-size: 1.2rem;">0%</span>
                 </div>
-                <div class="input-group"><textarea id="m-journal" placeholder="Mistakes Journal..."></textarea><button class="action-btn" onclick="addMock()">Save Test</button></div>
+                <div class="list-item">
+                    <label><input type="checkbox" id="syl_art" class="syl-check" onchange="App.saveSyllabus()"> Art & Culture</label>
+                </div>
+                <div class="list-item">
+                    <label><input type="checkbox" id="syl_mod" class="syl-check" onchange="App.saveSyllabus()"> Modern History</label>
+                </div>
+                <div class="list-item">
+                    <label><input type="checkbox" id="syl_pol" class="syl-check" onchange="App.saveSyllabus()"> Indian Polity</label>
+                </div>
+                <div class="list-item">
+                    <label><input type="checkbox" id="syl_geo" class="syl-check" onchange="App.saveSyllabus()"> Geography</label>
+                </div>
             </div>
-            <div id="mock-list"></div>
-        </div>
+        </section>
 
-        <div id="tab-rev" class="view-section">
+        <section id="tab-ca" class="tab-pane">
             <div class="card">
-                <h2>🧠 Schedule Revision</h2>
+                <div class="card-header"><span class="card-title">Log Current Affair</span></div>
                 <div class="input-group">
-                    <select id="r-subject" style="flex: 0.4;"><option value="Economics">Economics</option><option value="History">History</option><option value="Polity">Polity</option></select>
-                    <input type="text" id="r-topic" placeholder="Topic finished today" style="flex: 0.6;">
+                    <input type="text" id="caTitle" class="input-control" placeholder="Headline" style="flex: 2;">
+                    <select id="caPaper" class="input-control">
+                        <option>Pre</option><option>GS1</option><option>GS2</option><option>GS3</option><option>GS4</option>
+                    </select>
                 </div>
-                <div class="input-group">
-                    <input type="date" id="r-date">
-                    <button class="action-btn" onclick="addRev()">Schedule</button>
-                </div>
+                <div class="editor-area" id="caContent" contenteditable="true" placeholder="Summary or key facts..."></div>
+                <button class="btn-primary" onclick="App.addCA()">Save Record</button>
             </div>
-            <div id="rev-list"></div>
-        </div>
+            <div id="caList"></div>
+        </section>
 
-        <div id="tab-perf" class="view-section">
+        <section id="tab-mock" class="tab-pane">
             <div class="card">
-                <h2>📈 Mock Test Scores</h2>
-                <div class="chart-container"><canvas id="mockTrendChart"></canvas></div>
+                <div class="card-header"><span class="card-title">Performance Trend</span></div>
+                <div class="chart-container"><canvas id="mockChart"></canvas></div>
             </div>
-        </div>
+            <div class="card">
+                <div class="card-header"><span class="card-title">Log Test</span></div>
+                <div class="input-group">
+                    <input type="text" id="mockName" class="input-control" placeholder="Test Name (e.g. Vision Test 1)">
+                    <input type="number" id="mockScore" class="input-control" placeholder="Score">
+                    <button class="btn-primary" onclick="App.addMock()">Save Score</button>
+                </div>
+            </div>
+            <div id="mockList"></div>
+        </section>
 
-    </div>
+        <section id="tab-rev" class="tab-pane">
+            <div class="card">
+                <div class="card-header"><span class="card-title">Schedule Revision</span></div>
+                <div class="input-group">
+                    <input type="text" id="revTopic" class="input-control" placeholder="Topic to revise...">
+                    <input type="date" id="revDate" class="input-control">
+                    <button class="btn-primary" onclick="App.addRev()">Schedule</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><span class="card-title">Revision Ledger</span></div>
+                <div id="revList"></div>
+            </div>
+        </section>
+
+    </main>
 
 <script>
-    // 1. Bulletproof Storage (Forces arrays, prevents crash loops)
-    const store = {
-        get: (k, def) => { 
-            try { 
-                const val = localStorage.getItem(k);
-                if(val) {
-                    const parsed = JSON.parse(val);
-                    if (Array.isArray(def) && !Array.isArray(parsed)) return def;
-                    return parsed;
-                }
-                return def;
-            } catch(e) { return def; } 
+    /* =========================================================
+       CORE ARCHITECTURE & STATE MANAGEMENT
+       ========================================================= */
+    
+    // 1. Safe Local Storage Wrapper (Prevents parsing crashes)
+    const DB = {
+        get: (key, defaultValue) => {
+            try {
+                const stored = localStorage.getItem(key);
+                return stored ? JSON.parse(stored) : defaultValue;
+            } catch (e) {
+                console.error(`Error loading ${key}`, e);
+                return defaultValue;
+            }
         },
-        set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+        set: (key, value) => {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                console.error(`Error saving ${key}`, e);
+            }
+        }
     };
 
-    // 2. Setup Date
-    const dateEl = document.getElementById('current-date-display');
-    if(dateEl) dateEl.innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    // 2. Application State (Loads data once on startup)
+    const State = {
+        tasks: DB.get('upsc_tasks', []),
+        notes: DB.get('upsc_notes', []),
+        cas: DB.get('upsc_cas', []),
+        mocks: DB.get('upsc_mocks', []),
+        revs: DB.get('upsc_revs', []),
+        syl: DB.get('upsc_syl', {})
+    };
 
-    // 3. Tab Switching
-    function toggleMenu() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('active'); }
-    function switchTab(id, btn) {
-        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(btn) btn.classList.add('active');
-        document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('active');
-        if(id === 'tab-dash' || id === 'tab-perf') renderCharts();
+    // 3. Chart Instances (Required to destroy charts before re-rendering)
+    let chartInstances = { task: null, mock: null };
+
+    // 4. Utility Data
+    const Subjects = {
+        Prelims: ["History", "Polity", "Economy", "Geography", "Environment", "Science", "CSAT"],
+        Mains: ["GS 1", "GS 2", "GS 3", "GS 4", "Optional Subject", "Essay"]
+    };
+
+    /* =========================================================
+       UI INTERACTION & NAVIGATION
+       ========================================================= */
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('mobileOverlay').classList.toggle('active');
     }
 
-    // 4. Timer Logic
-    const prelimsDate = new Date(2027, 4, 23).getTime();
-    function updateTimer() {
-        try {
-            const now = new Date().getTime();
-            const diff = prelimsDate - now;
-            const preEl = document.getElementById('t-pre');
-            if(!preEl) return;
-            if(diff < 0) { preEl.innerText = "0d 0h 0m"; return; }
-            preEl.innerText = `${Math.floor(diff / (1000 * 60 * 60 * 24))}d ${Math.floor((diff / (1000 * 60 * 60)) % 24)}h ${Math.floor((diff / (1000 * 60)) % 60)}m`;
-        } catch(e) { console.error("Timer error", e); }
-    }
-    updateTimer(); setInterval(updateTimer, 60000);
+    // Tab Navigation Logic
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Update buttons
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Update panels
+            const targetId = e.target.getAttribute('data-target');
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.getElementById(targetId).classList.add('active');
+            
+            // Close mobile sidebar
+            if (window.innerWidth <= 768) toggleSidebar();
+            
+            // Re-render charts if navigating to tabs that hold them
+            if (targetId === 'tab-dash' || targetId === 'tab-mock') {
+                App.renderCharts();
+            }
+        });
+    });
 
-    // 5. Dropdowns
-    const subjectsList = { Prelims: ["History", "Polity", "Economy", "Geography", "Science", "CSAT"], Mains: ["GS 1", "GS 2", "GS 3", "GS 4", "Optional"] };
-    function updateSubjectDropdown(eId, sId) {
-        try {
-            const e = document.getElementById(eId).value, sel = document.getElementById(sId);
-            if(subjectsList[e]) sel.innerHTML = subjectsList[e].map(s => `<option value="${s}">${s}</option>`).join('');
-        } catch(e) {}
+    // Dropdown population
+    function updateSubjectOptions(examSelectId, subjectSelectId) {
+        const exam = document.getElementById(examSelectId).value;
+        const subSelect = document.getElementById(subjectSelectId);
+        subSelect.innerHTML = Subjects[exam].map(sub => `<option value="${sub}">${sub}</option>`).join('');
     }
-    updateSubjectDropdown('task-exam', 'task-subject'); updateSubjectDropdown('note-exam', 'note-subject');
 
-    // 6. Tasks
-    let tasks = store.get('up_tasks_v5', []); 
-    
-    function renderTasks() {
-        try {
-            const container = document.getElementById('task-list-container');
-            if (
+    /* =========================================================
+       APPLICATION LOGIC (THE "APP" MODULE)
+       ========================================================= */
+
+    const App = {
+        
+        // --- Timer Initialization ---
+        initTimer: () => {
+            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const targetDate = new Date(2027, 4, 23).getTime(); // May 23, 2027 (Month is 0-indexed: 4 = May)
+            
+            const calculateTime = () => {
+                const now = new Date().getTime();
+                const diff = targetDate - now;
+                if (diff < 0) return document.getElementById('countdownDisplay').innerText = "0d 0h 0m";
+                
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+                const m = Math.floor((diff / 1000 / 60) % 60);
+                document.getElementById('countdownDisplay').innerText = `${d}d ${h}h 
