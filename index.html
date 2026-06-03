@@ -10,48 +10,38 @@
     <style>
         /* --- PREMIUM COLOR PALETTE & GLOBALS --- */
         :root {
-            --primary: #3b82f6;         /* Bright Royal Blue */
-            --primary-hover: #2563eb;   /* Deep Blue */
-            --primary-light: #eff6ff;   /* Soft Blue background */
-            --header-bg: #0f172a;       /* Deep Navy / Midnight */
-            --bg-body: #f1f5f9;         /* Soft Slate */
-            --surface: #ffffff;         /* Pure White */
-            --text-main: #0f172a;       /* Near Black */
-            --text-muted: #475569;      /* Slate Gray */
-            --border: #cbd5e1;          /* Crisp border */
-            --accent: #10b981;          /* Emerald Green */
-            --danger: #ef4444;          /* Crimson Red */
-            --warning: #f59e0b;         /* Amber */
+            --primary: #3b82f6;         
+            --primary-hover: #2563eb;   
+            --primary-light: #eff6ff;   
+            --header-bg: #0f172a;       
+            --bg-body: #f1f5f9;         
+            --surface: #ffffff;         
+            --text-main: #0f172a;       
+            --text-muted: #475569;      
+            --border: #cbd5e1;          
+            --accent: #10b981;          
+            --danger: #ef4444;          
+            --warning: #f59e0b;         
             --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
         
-        /* --- APP BAR & HAMBURGER MENU --- */
-        .app-bar {
-            background: var(--header-bg); padding: 1.2rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: var(--shadow-md); position: sticky; top: 0; z-index: 100;
-        }
+        /* --- APP BAR & MENU --- */
+        .app-bar { background: var(--header-bg); padding: 1.2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-md); position: sticky; top: 0; z-index: 100; }
         .app-bar h1 { font-size: 1.6rem; color: #ffffff; font-weight: 700; letter-spacing: -0.5px; }
         .app-bar h1 span { color: #38bdf8; }
         .menu-btn { background: transparent; border: none; font-size: 1.8rem; color: #38bdf8; cursor: pointer; transition: 0.2s; }
         .menu-btn:hover { color: #ffffff; }
 
         /* --- SIDEBAR NAVIGATION --- */
-        .sidebar {
-            position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: var(--surface);
-            box-shadow: 4px 0 15px rgba(0,0,0,0.1); transition: left 0.3s ease; z-index: 200; padding: 2rem 1rem;
-            display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto;
-        }
+        .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: var(--surface); box-shadow: 4px 0 15px rgba(0,0,0,0.1); transition: left 0.3s ease; z-index: 200; padding: 2rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
         .sidebar.open { left: 0; }
         .close-btn { align-self: flex-end; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; margin-bottom: 1rem; color: var(--text-muted); }
-        .nav-btn {
-            background: transparent; border: none; padding: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); text-align: left; font-size: 1.05rem; transition: 0.2s; display: flex; align-items: center; gap: 10px; text-decoration: none;
-        }
+        .nav-btn { background: transparent; border: none; padding: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); text-align: left; font-size: 1.05rem; transition: 0.2s; display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .nav-btn:hover { background: #f8fafc; color: var(--text-main); }
         .nav-btn.active { background: var(--primary-light); color: var(--primary-hover); }
-        
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(2px); display: none; z-index: 150; }
         .overlay.active { display: block; }
 
@@ -69,90 +59,85 @@
         input:focus, select:focus, textarea:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px var(--primary-light); }
         button.action-btn { padding: 0.85rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; transition: 0.2s; }
         button.action-btn:hover { background: var(--primary-hover); }
-        .delete-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
+        .delete-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; transition: 0.2s; }
         .delete-btn:hover { color: var(--danger); }
         
-        /* --- LAYOUTS --- */
+        /* --- LAYOUTS & UTILS --- */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
         @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
         .list-item { padding: 1.2rem; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem; border-left: 4px solid var(--primary); background: var(--surface); }
-        
-        /* --- BADGES & TIMERS --- */
         .badge { background: var(--primary-light); color: var(--primary-hover); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; }
+        
+        /* --- TIMERS & TASKS --- */
         .timer-box { background: linear-gradient(135deg, var(--primary-light), #e0e7ff); padding: 1.5rem; border-radius: 12px; text-align: center; margin-bottom: 1rem; border: 1px solid #c7d2fe; }
-        .time-display { font-size: 2rem; font-weight: 800; color: var(--primary-hover); font-variant-numeric: tabular-nums; letter-spacing: -1px; }
-        
-        /* --- TASK SYSTEM --- */
+        .time-display { font-size: 2.2rem; font-weight: 800; color: var(--primary-hover); font-variant-numeric: tabular-nums; letter-spacing: -1px; }
         .task-category-title { font-size: 1.05rem; font-weight: 700; margin: 1.5rem 0 0.8rem 0; text-transform: uppercase; letter-spacing: 1px; }
-        .task-subject-badge { font-size: 0.8rem; background: #e2e8f0; color: #475569; padding: 3px 8px; border-radius: 4px; margin-right: 10px; font-weight: 600; }
-        .task-row { display: flex; align-items: center; gap: 12px; cursor: pointer; flex: 1; }
-        .task-checkbox { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); }
         
-        /* --- SYLLABUS ACCORDION --- */
-        .acc-btn { width: 100%; text-align: left; padding: 1.2rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 0.5rem; color: var(--text-main); font-size: 1.05rem; transition: 0.2s; }
-        .acc-btn:hover { background: var(--primary-light); color: var(--primary-hover); border-color: #c7d2fe; }
+        /* --- SYLLABUS --- */
+        .acc-btn { width: 100%; text-align: left; padding: 1.2rem; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; font-weight: 600; cursor: pointer; margin-bottom: 0.5rem; color: var(--text-main); font-size: 1.05rem; }
         .acc-content { display: none; padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; margin-top: -0.5rem; margin-bottom: 1rem; }
         .acc-content.show { display: block; }
         .topic-list { list-style: none; }
         .topic-list li { display: flex; align-items: center; gap: 12px; padding: 0.8rem 0; border-bottom: 1px solid #f1f5f9; }
-        .topic-list li:last-child { border-bottom: none; }
         .topic-list input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
 
-        /* --- NOTEPAD & REVISION --- */
+        /* --- NOTEPAD / EDITOR --- */
         .notepad-container { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1.2rem; }
-        .notepad-toolbar { background: #f8fafc; border-bottom: 1px solid var(--border); padding: 0.6rem; display: flex; gap: 8px; }
+        .notepad-toolbar { background: #f8fafc; border-bottom: 1px solid var(--border); padding: 0.6rem; display: flex; gap: 8px; flex-wrap: wrap; }
         .tool-btn { background: var(--surface); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; color: var(--text-muted); font-size: 0.95rem; }
         .tool-btn:hover { background: var(--primary-light); color: var(--primary-hover); border-color: #c7d2fe; }
         .editor-area { padding: 1.2rem; min-height: 150px; outline: none; background: var(--surface); line-height: 1.7; font-size: 1rem; }
         [contenteditable]:empty:before { content: attr(placeholder); color: #94a3b8; cursor: text; }
-        .ca-note-content { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 0.95rem; line-height: 1.6; }
-        .ca-note-content ul { margin-left: 20px; }
-        .time-block { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border); align-items: center; }
+        .editor-area img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; border: 1px solid var(--border); }
+        .note-content-display { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 0.95rem; line-height: 1.6; }
+        .note-content-display ul { margin-left: 20px; }
+        .note-content-display img { max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0; }
         
-        /* --- CHART CONTAINER --- */
+        .time-block { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border); align-items: center; }
         .chart-container { position: relative; height: 250px; width: 100%; margin-top: 1rem; }
     </style>
 </head>
 <body>
 
-    <!-- TOP APP BAR -->
+    <!-- APP BAR -->
     <div class="app-bar">
         <h1>UPSC <span>Command</span></h1>
         <button class="menu-btn" onclick="toggleMenu()">☰</button>
     </div>
 
-    <!-- SIDEBAR OVERLAY & MENU -->
+    <!-- SIDEBAR -->
     <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
     <div class="sidebar" id="sidebar">
         <button class="close-btn" onclick="toggleMenu()">✖</button>
         <button class="nav-btn active" onclick="switchTab('tab-dash', this)">📊 Dashboard & Tasks</button>
-        <button class="nav-btn" onclick="switchTab('tab-perf', this)">📈 Performance Graphs</button>
+        <button class="nav-btn" onclick="switchTab('tab-notes', this)">📓 Digital Notebook</button> <!-- NEW -->
         <button class="nav-btn" onclick="switchTab('tab-syl', this)">📚 Syllabus Tracker</button>
         <button class="nav-btn" onclick="switchTab('tab-ca', this)">📰 Current Affairs</button>
         <button class="nav-btn" onclick="switchTab('tab-mock', this)">📝 Mock Tests</button>
         <button class="nav-btn" onclick="switchTab('tab-rev', this)">🧠 Revision Schedule</button>
+        <button class="nav-btn" onclick="switchTab('tab-perf', this)">📈 Performance</button>
         <hr style="border: 0; border-top: 1px solid var(--border); margin: 10px 0;">
-        <!-- LINK TO INDEX2.HTML -->
         <a href="index2.html" class="nav-btn" style="color: var(--primary); background: var(--primary-light);">📄 Go to Page 2 →</a>
     </div>
 
     <div class="container">
         
         <!-- ========================================== -->
-        <!-- VIEW 1: DASHBOARD & TASKS                  -->
+        <!-- VIEW 1: DASHBOARD                          -->
         <!-- ========================================== -->
         <div id="tab-dash" class="view-section active">
             <div class="grid-2">
-                <div class="card">
-                    <h2>⏳ Target Countdowns</h2>
-                    <div class="timer-box"><div id="t-pre" class="time-display">Loading...</div><small style="color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Prelims</small></div>
-                    <div class="timer-box"><div id="t-main" class="time-display">Loading...</div><small style="color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Mains</small></div>
+                <div class="card" style="display: flex; flex-direction: column; justify-content: center;">
+                    <h2>⏳ Target Countdown</h2>
+                    <div class="timer-box" style="margin-bottom: 0;">
+                        <div id="t-pre" class="time-display">Loading...</div>
+                        <small style="color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-top: 5px; display: block;">May 23, 2027 (Prelims)</small>
+                    </div>
                 </div>
-
                 <div class="card">
                     <h2>🎯 Add Study Target</h2>
                     <div class="input-group">
-                        <select id="task-exam" onchange="updateSubjectDropdown()">
+                        <select id="task-exam" onchange="updateSubjectDropdown('task-exam', 'task-subject')">
                             <option value="Prelims">Prelims Target</option>
                             <option value="Mains">Mains Target</option>
                         </select>
@@ -160,7 +145,7 @@
                     </div>
                     <div class="input-group">
                         <input type="text" id="task-in" placeholder="Specific topic or chapter...">
-                        <button class="action-btn" onclick="addTask()">Add Target</button>
+                        <button class="action-btn" onclick="addTask()">Add Task</button>
                     </div>
                 </div>
             </div>
@@ -171,23 +156,40 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- VIEW 2: PERFORMANCE GRAPHS                 -->
+        <!-- VIEW 2: DIGITAL NOTEBOOK (NEW)             -->
         <!-- ========================================== -->
-        <div id="tab-perf" class="view-section">
-            <div class="grid-2">
-                <div class="card">
-                    <h2>📈 Mock Test Scores (Trend)</h2>
-                    <div class="chart-container"><canvas id="mockTrendChart"></canvas></div>
+        <div id="tab-notes" class="view-section">
+            <div class="card">
+                <h2>📓 Create Subject Note</h2>
+                <div class="input-group">
+                    <select id="note-exam" onchange="updateSubjectDropdown('note-exam', 'note-subject')" style="flex: 0.3;">
+                        <option value="Prelims">Prelims</option>
+                        <option value="Mains">Mains</option>
+                    </select>
+                    <select id="note-subject" style="flex: 0.3;"></select>
+                    <input type="text" id="note-part" placeholder="Part / Chapter (e.g. Fundamental Rights)" style="flex: 0.4;">
                 </div>
-                <div class="card">
-                    <h2>🎯 Task Completion by Exam</h2>
-                    <div class="chart-container"><canvas id="taskPieChart"></canvas></div>
+                
+                <div class="notepad-container">
+                    <div class="notepad-toolbar">
+                        <button class="tool-btn" onclick="document.execCommand('bold', false, null)"><b>B</b></button>
+                        <button class="tool-btn" onclick="document.execCommand('italic', false, null)"><i>I</i></button>
+                        <button class="tool-btn" onclick="document.execCommand('underline', false, null)"><u>U</u></button>
+                        <button class="tool-btn" onclick="document.execCommand('insertUnorderedList', false, null)">• List</button>
+                        <!-- IMAGE UPLOAD BUTTON -->
+                        <button class="tool-btn" style="color: var(--primary);" onclick="document.getElementById('image-upload').click()">📷 Add Image</button>
+                        <input type="file" id="image-upload" style="display: none;" accept="image/*" onchange="handleImageUpload(this)">
+                    </div>
+                    <div id="master-notebook" class="editor-area" contenteditable="true" placeholder="Write your comprehensive notes here. Paste text, create lists, or upload images..."></div>
                 </div>
+                <button class="action-btn" onclick="saveSubjectNote()">Save Note</button>
             </div>
+            
+            <div id="notebook-ledger"></div>
         </div>
 
         <!-- ========================================== -->
-        <!-- VIEW 3: SYLLABUS TRACKER                   -->
+        <!-- VIEW 3: SYLLABUS                           -->
         <!-- ========================================== -->
         <div id="tab-syl" class="view-section">
             <div class="card">
@@ -220,7 +222,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- VIEW 4: CURRENT AFFAIRS WITH NOTEPAD       -->
+        <!-- VIEW 4: CURRENT AFFAIRS                    -->
         <!-- ========================================== -->
         <div id="tab-ca" class="view-section">
             <div class="card">
@@ -234,14 +236,14 @@
                 </div>
                 <div class="notepad-container">
                     <div class="notepad-toolbar">
-                        <button class="tool-btn" onclick="document.execCommand('bold', false, null)" title="Bold"><b>B</b></button>
-                        <button class="tool-btn" onclick="document.execCommand('italic', false, null)" title="Italic"><i>I</i></button>
-                        <button class="tool-btn" onclick="document.execCommand('underline', false, null)" title="Underline"><u>U</u></button>
-                        <button class="tool-btn" onclick="document.execCommand('insertUnorderedList', false, null)" title="Bullet List">• List</button>
+                        <button class="tool-btn" onclick="document.execCommand('bold', false, null)"><b>B</b></button>
+                        <button class="tool-btn" onclick="document.execCommand('italic', false, null)"><i>I</i></button>
+                        <button class="tool-btn" onclick="document.execCommand('underline', false, null)"><u>U</u></button>
+                        <button class="tool-btn" onclick="document.execCommand('insertUnorderedList', false, null)">• List</button>
                     </div>
-                    <div id="ca-notes" class="editor-area" contenteditable="true" placeholder="Write your detailed notes, summaries, or analyses here..."></div>
+                    <div id="ca-notes" class="editor-area" contenteditable="true" placeholder="Quick news summaries..."></div>
                 </div>
-                <button class="action-btn" onclick="addCA()">Save Ledger</button>
+                <button class="action-btn" onclick="addCA()">Save Current Affair</button>
             </div>
             <div id="ca-list"></div>
         </div>
@@ -253,12 +255,12 @@
             <div class="card">
                 <h2>📝 Log Mock Test</h2>
                 <div class="input-group">
-                    <input type="text" id="m-name" placeholder="Test Name (e.g., Vision IAS Test 1)">
-                    <select id="m-type" style="flex:0.4"><option>Prelims GS</option><option>Prelims CSAT</option><option>Mains GS</option><option>Anthropology Optional</option></select>
-                    <input type="number" id="m-score" placeholder="Score" style="flex:0.3">
+                    <input type="text" id="m-name" placeholder="Test Name (e.g., Vision IAS Prelims 1)">
+                    <select id="m-type" style="flex:0.4"><option>Prelims GS</option><option>Prelims CSAT</option><option>Mains GS</option><option>Anthropology</option></select>
+                    <input type="number" id="m-score" placeholder="Test Score" style="flex:0.3">
                 </div>
                 <div class="input-group">
-                    <textarea id="m-journal" placeholder="Mistakes Journal (What went wrong? Conceptual gaps? Silly errors?)..."></textarea>
+                    <textarea id="m-journal" placeholder="Mistakes Journal: What went wrong? Conceptual gaps? Silly errors?"></textarea>
                     <button class="action-btn" onclick="addMock()">Save Test</button>
                 </div>
             </div>
@@ -266,7 +268,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- VIEW 6: REVISION SCHEDULE                  -->
+        <!-- VIEW 6: REVISION                           -->
         <!-- ========================================== -->
         <div id="tab-rev" class="view-section">
             <div class="card">
@@ -278,28 +280,10 @@
                         <option value="History">History</option>
                         <option value="Geography">Geography</option>
                         <option value="Polity">Polity</option>
+                        <option value="Science">Science & Tech</option>
+                        <option value="Optional">Anthropology</option>
                     </select>
                     <input type="text" id="r-topic" placeholder="Topic finished today" style="flex: 0.6;">
                 </div>
                 <div class="input-group time-block">
-                    <label style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin-right: 10px;">Target Hours:</label>
-                    <input type="time" id="r-time-from" title="Start Time" style="background: var(--surface);">
-                    <span style="margin: 0 10px; color: var(--text-muted); font-weight: 600;">to</span>
-                    <input type="time" id="r-time-to" title="End Time" style="background: var(--surface);">
-                </div>
-                <div class="input-group">
-                    <input type="date" id="r-date" style="background: var(--surface);">
-                    <button class="action-btn" onclick="addRev()">Schedule Sessions</button>
-                </div>
-            </div>
-            <div id="rev-list"></div>
-        </div>
-
-    </div>
-
-    <!-- ========================================== -->
-    <!-- JAVASCRIPT LOGIC                           -->
-    <!-- ========================================== -->
-    <script>
-        const store = {
-            get: (k, def) => JSON.parse(localStorage.getItem(
+                    <label style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin-
