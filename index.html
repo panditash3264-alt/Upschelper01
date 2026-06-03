@@ -108,7 +108,6 @@
             <button class="nav-btn" onclick="switchTab('tab-mock', this)"><span>📝</span> Mock Tests</button>
             <button class="nav-btn" onclick="switchTab('tab-rev', this)"><span>🔄</span> Revision</button>
             <button class="nav-btn" onclick="switchTab('tab-perf', this)"><span>📈</span> Performance</button>
-            <a href="index2.html" class="nav-btn"><span>🔗</span> Page 2</a>
         </div>
     </div>
 
@@ -173,7 +172,12 @@
             <div class="card">
                 <div class="card-header"><h2>📚 GS Syllabus Tracker</h2><span id="syl-prog" style="color:var(--accent-gold); font-size: 1.2rem; font-weight: 700;">0%</span></div>
                 <button class="acc-btn" onclick="toggleAcc(this)">GS 1: History, Culture & Geo ▼</button>
-                <div class="acc-content show"><ul class="topic-list" id="syl-1"><li><input type="checkbox" id="g1a" onchange="saveSyl()"><label>Indian Culture & Art</label></li><li><input type="checkbox" id="g1b" onchange="saveSyl()"><label>Modern Indian History</label></li></ul></div>
+                <div class="acc-content show">
+                    <ul class="topic-list" id="syl-1">
+                        <li><input type="checkbox" id="g1a" onchange="saveSyl()"><label>Indian Culture & Art</label></li>
+                        <li><input type="checkbox" id="g1b" onchange="saveSyl()"><label>Modern Indian History</label></li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -263,7 +267,7 @@
         if(id === 'tab-dash' || id === 'tab-perf') renderCharts();
     }
 
-    // 4. FIX: Mobile Safari safe date format (Year, MonthIndex, Day) -> Month 4 is May
+    // 4. Timer Logic
     const prelimsDate = new Date(2027, 4, 23).getTime();
     function updateTimer() {
         try {
@@ -287,8 +291,10 @@
     }
     updateSubjectDropdown('task-exam', 'task-subject'); updateSubjectDropdown('note-exam', 'note-subject');
 
-    // 6. Tasks (Using v5 to wipe corrupted data)
+    // 6. Tasks
     let tasks = store.get('up_tasks_v5', []); 
+    
     function renderTasks() {
         try {
-            const c = document.
+            const container = document.getElementById('task-list-container');
+            if (
