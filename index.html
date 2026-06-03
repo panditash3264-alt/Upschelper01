@@ -7,86 +7,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* --- 1. DESIGN TOKENS (Variables) --- */
+        /* --- DESIGN TOKENS --- */
         :root {
-            --bg-body: #0f172a;
-            --bg-surface: #1e293b;
-            --bg-surface-hover: #334155;
-            --accent-primary: #f59e0b; /* Gold */
-            --accent-primary-hover: #d97706;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-            
-            --status-success: #10b981;
-            --status-danger: #ef4444;
-            --radius-md: 8px;
-            --radius-lg: 12px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --bg-body: #0f172a; --bg-surface: #1e293b; --bg-surface-hover: #334155;
+            --accent-primary: #f59e0b; --accent-primary-hover: #d97706;
+            --text-main: #f8fafc; --text-muted: #94a3b8; --border-color: #334155;
+            --status-danger: #ef4444; --radius-md: 8px; --radius-lg: 12px;
         }
 
-        /* --- 2. GLOBAL RESET & BASE --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            display: flex;
-            min-height: 100vh;
-            overflow-x: hidden;
-            line-height: 1.5;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-body); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; line-height: 1.5; }
 
-        /* --- 3. LAYOUT: SIDEBAR & MAIN CONTENT --- */
-        .sidebar {
-            width: 280px;
-            background-color: var(--bg-surface);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
+        /* --- NOSCRIPT WARNING --- */
+        .js-warning { background: var(--status-danger); color: white; padding: 1.5rem; text-align: center; font-weight: bold; border-radius: var(--radius-lg); margin: 1.5rem; border: 2px solid white; }
+
+        /* --- LAYOUT --- */
+        .sidebar { width: 280px; background-color: var(--bg-surface); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 1000; transition: transform 0.3s ease; }
         .sidebar-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); }
         .sidebar-header h2 { font-size: 1.1rem; color: var(--text-main); }
         .sidebar-header span { color: var(--accent-primary); font-size: 0.85rem; display: block; font-weight: normal; }
         
         .nav-links { display: flex; flex-direction: column; padding: 1rem 0; }
-        .nav-item {
-            padding: 0.75rem 1.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-left: 3px solid transparent;
-            cursor: pointer;
-            font-weight: 500;
-            background: none;
-            border-top: none; border-right: none; border-bottom: none;
-            text-align: left;
-            width: 100%;
-            font-size: 1rem;
-        }
-        .nav-item:hover { background-color: var(--bg-surface-hover); color: var(--text-main); }
-        .nav-item.active {
-            background-color: rgba(245, 158, 11, 0.1);
-            color: var(--accent-primary);
-            border-left-color: var(--accent-primary);
-        }
+        .nav-item { padding: 0.75rem 1.5rem; color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 12px; border-left: 3px solid transparent; cursor: pointer; font-weight: 500; background: none; border-top: none; border-right: none; border-bottom: none; text-align: left; width: 100%; font-size: 1rem; }
+        .nav-item.active { background-color: rgba(245, 158, 11, 0.1); color: var(--accent-primary); border-left-color: var(--accent-primary); }
 
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            padding: 2rem;
-            max-width: 900px;
-        }
-
-        /* Mobile Adjustments */
+        .main-content { flex: 1; margin-left: 280px; padding: 2rem; max-width: 900px; }
         .mobile-menu-btn { display: none; background: none; border: none; color: var(--text-main); font-size: 1.5rem; cursor: pointer; }
         .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+        
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
@@ -95,49 +43,20 @@
             .mobile-overlay.active { display: block; }
         }
 
-        /* --- 4. COMPONENTS --- */
-        .tab-pane { display: none; animation: fadeIn 0.3s ease; }
-        .tab-pane.active { display: block; }
+        /* --- COMPONENTS --- */
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow);
-        }
+        .card { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
         .card-title { font-size: 1.1rem; font-weight: 600; }
 
-        /* Inputs & Buttons */
         .input-group { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
-        .input-control {
-            flex: 1; min-width: 150px;
-            padding: 0.75rem;
-            background: var(--bg-body);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: var(--text-main);
-            outline: none;
-        }
-        .input-control:focus { border-color: var(--accent-primary); }
-        .btn-primary {
-            background: var(--accent-primary);
-            color: #000;
-            border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .btn-primary:hover { background: var(--accent-primary-hover); }
+        .input-control { flex: 1; min-width: 150px; padding: 0.75rem; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-main); outline: none; }
+        .btn-primary { background: var(--accent-primary); color: #000; border: none; padding: 0.75rem 1.5rem; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; }
         .btn-icon { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
-        .btn-icon:hover { color: var(--status-danger); }
 
-        /* Dashboard Specific */
         .timer-box { text-align: center; border: 1px solid var(--accent-primary); padding: 1.5rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; background: rgba(245, 158, 11, 0.05); }
         .timer-title { color: var(--accent-primary); font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 0.5rem; }
         .timer-time { font-size: 2.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -149,17 +68,18 @@
 
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 0.75rem; background: var(--bg-body); }
         .badge { background: var(--border-color); color: var(--text-muted); padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; margin-right: 8px; font-weight: 600; }
-        
-        /* Rich Text Editor */
-        .editor-toolbar { padding: 0.5rem; background: var(--bg-body); border: 1px solid var(--border-color); border-bottom: none; border-radius: var(--radius-md) var(--radius-md) 0 0; display: flex; gap: 5px; }
-        .editor-btn { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        .editor-area { min-height: 150px; padding: 1rem; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 0 0 var(--radius-md) var(--radius-md); margin-bottom: 1rem; outline: none; }
-        .editor-area:focus { border-color: var(--accent-primary); }
-
         .chart-container { position: relative; height: 250px; width: 100%; }
     </style>
 </head>
 <body>
+
+    <noscript>
+        <div class="js-warning">
+            ⚠️ SYSTEM ERROR: JAVASCRIPT BLOCKED ⚠️<br><br>
+            Your current app is blocking this dashboard from running.<br>
+            Please close this viewer, long-press the file, select "Open With...", and choose <b>Google Chrome</b>.
+        </div>
+    </noscript>
 
     <div class="mobile-overlay" id="mobileOverlay" onclick="toggleSidebar()"></div>
     
@@ -170,11 +90,7 @@
         </div>
         <div class="nav-links">
             <button class="nav-item active" data-target="tab-dash">Dashboard</button>
-            <button class="nav-item" data-target="tab-notes">Subject Notes</button>
-            <button class="nav-item" data-target="tab-syl">Syllabus Tracker</button>
-            <button class="nav-item" data-target="tab-ca">Current Affairs</button>
             <button class="nav-item" data-target="tab-mock">Mock Tests</button>
-            <button class="nav-item" data-target="tab-rev">Revision Engine</button>
         </div>
     </nav>
 
@@ -183,21 +99,17 @@
         
         <section id="tab-dash" class="tab-pane active">
             <h1 style="margin-bottom: 0.5rem;">Command Center</h1>
-            <p style="color: var(--text-muted); margin-bottom: 1.5rem;" id="currentDateDisplay"></p>
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;" id="currentDateDisplay">Loading Date...</p>
 
             <div class="timer-box">
                 <div class="timer-title">Target: Prelims (May 23, 2027)</div>
-                <div class="timer-time" id="countdownDisplay">Loading...</div>
+                <div class="timer-time" id="countdownDisplay">Loading Timer...</div>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-box">
                     <div class="stat-label">Daily Tasks</div>
                     <div class="stat-value" id="taskStat">0 / 0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Revisions Due Today</div>
-                    <div class="stat-value" id="revStat" style="color: var(--status-danger);">0</div>
                 </div>
             </div>
 
@@ -221,193 +133,91 @@
             </div>
         </section>
 
-        <section id="tab-notes" class="tab-pane">
-            <div class="card">
-                <div class="card-header"><span class="card-title">Create Note</span></div>
-                <div class="input-group">
-                    <select id="noteExam" class="input-control" onchange="updateSubjectOptions('noteExam', 'noteSubject')">
-                        <option value="Prelims">Prelims</option>
-                        <option value="Mains">Mains</option>
-                    </select>
-                    <select id="noteSubject" class="input-control"></select>
-                    <input type="text" id="noteTitle" class="input-control" placeholder="Chapter / Topic Name" style="flex: 2;">
-                </div>
-                
-                <div class="editor-toolbar">
-                    <button class="editor-btn" onclick="document.execCommand('bold', false, null)"><b>B</b></button>
-                    <button class="editor-btn" onclick="document.execCommand('italic', false, null)"><i>I</i></button>
-                    <button class="editor-btn" onclick="document.execCommand('insertUnorderedList', false, null)">• List</button>
-                </div>
-                <div id="noteContent" class="editor-area" contenteditable="true" placeholder="Start typing..."></div>
-                
-                <button class="btn-primary" onclick="App.addNote()">Save Note</button>
-            </div>
-            <div id="notesList"></div>
-        </section>
-
-        <section id="tab-syl" class="tab-pane">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">GS Syllabus Completion</span>
-                    <span id="sylProgress" style="color: var(--accent-primary); font-weight: bold; font-size: 1.2rem;">0%</span>
-                </div>
-                <div class="list-item">
-                    <label><input type="checkbox" id="syl_art" class="syl-check" onchange="App.saveSyllabus()"> Art & Culture</label>
-                </div>
-                <div class="list-item">
-                    <label><input type="checkbox" id="syl_mod" class="syl-check" onchange="App.saveSyllabus()"> Modern History</label>
-                </div>
-                <div class="list-item">
-                    <label><input type="checkbox" id="syl_pol" class="syl-check" onchange="App.saveSyllabus()"> Indian Polity</label>
-                </div>
-                <div class="list-item">
-                    <label><input type="checkbox" id="syl_geo" class="syl-check" onchange="App.saveSyllabus()"> Geography</label>
-                </div>
-            </div>
-        </section>
-
-        <section id="tab-ca" class="tab-pane">
-            <div class="card">
-                <div class="card-header"><span class="card-title">Log Current Affair</span></div>
-                <div class="input-group">
-                    <input type="text" id="caTitle" class="input-control" placeholder="Headline" style="flex: 2;">
-                    <select id="caPaper" class="input-control">
-                        <option>Pre</option><option>GS1</option><option>GS2</option><option>GS3</option><option>GS4</option>
-                    </select>
-                </div>
-                <div class="editor-area" id="caContent" contenteditable="true" placeholder="Summary or key facts..."></div>
-                <button class="btn-primary" onclick="App.addCA()">Save Record</button>
-            </div>
-            <div id="caList"></div>
-        </section>
-
         <section id="tab-mock" class="tab-pane">
             <div class="card">
                 <div class="card-header"><span class="card-title">Performance Trend</span></div>
                 <div class="chart-container"><canvas id="mockChart"></canvas></div>
             </div>
-            <div class="card">
-                <div class="card-header"><span class="card-title">Log Test</span></div>
-                <div class="input-group">
-                    <input type="text" id="mockName" class="input-control" placeholder="Test Name (e.g. Vision Test 1)">
-                    <input type="number" id="mockScore" class="input-control" placeholder="Score">
-                    <button class="btn-primary" onclick="App.addMock()">Save Score</button>
-                </div>
-            </div>
-            <div id="mockList"></div>
         </section>
-
-        <section id="tab-rev" class="tab-pane">
-            <div class="card">
-                <div class="card-header"><span class="card-title">Schedule Revision</span></div>
-                <div class="input-group">
-                    <input type="text" id="revTopic" class="input-control" placeholder="Topic to revise...">
-                    <input type="date" id="revDate" class="input-control">
-                    <button class="btn-primary" onclick="App.addRev()">Schedule</button>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header"><span class="card-title">Revision Ledger</span></div>
-                <div id="revList"></div>
-            </div>
-        </section>
-
     </main>
 
 <script>
-    /* =========================================================
-       CORE ARCHITECTURE & STATE MANAGEMENT
-       ========================================================= */
-    
-    // 1. Safe Local Storage Wrapper (Prevents parsing crashes)
+    // 0. Emergency Crash Reporter
+    window.onerror = function(msg) {
+        document.getElementById('countdownDisplay').innerText = "JS CRASH: " + msg;
+    };
+
+    // 1. Hardened Local Storage (Prevents corrupted data from crashing the app)
     const DB = {
         get: (key, defaultValue) => {
             try {
                 const stored = localStorage.getItem(key);
-                return stored ? JSON.parse(stored) : defaultValue;
+                if (!stored) return defaultValue;
+                const parsed = JSON.parse(stored);
+                // If previous data got corrupted (e.g., saved as an object instead of array), reset it.
+                if (Array.isArray(defaultValue) && !Array.isArray(parsed)) return defaultValue;
+                if (parsed === null) return defaultValue;
+                return parsed;
             } catch (e) {
-                console.error(`Error loading ${key}`, e);
                 return defaultValue;
             }
         },
         set: (key, value) => {
-            try {
-                localStorage.setItem(key, JSON.stringify(value));
-            } catch (e) {
-                console.error(`Error saving ${key}`, e);
-            }
+            try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
         }
     };
 
-    // 2. Application State (Loads data once on startup)
     const State = {
         tasks: DB.get('upsc_tasks', []),
-        notes: DB.get('upsc_notes', []),
-        cas: DB.get('upsc_cas', []),
-        mocks: DB.get('upsc_mocks', []),
-        revs: DB.get('upsc_revs', []),
-        syl: DB.get('upsc_syl', {})
+        mocks: DB.get('upsc_mocks', [])
     };
 
-    // 3. Chart Instances (Required to destroy charts before re-rendering)
     let chartInstances = { task: null, mock: null };
 
-    // 4. Utility Data
     const Subjects = {
         Prelims: ["History", "Polity", "Economy", "Geography", "Environment", "Science", "CSAT"],
         Mains: ["GS 1", "GS 2", "GS 3", "GS 4", "Optional Subject", "Essay"]
     };
 
-    /* =========================================================
-       UI INTERACTION & NAVIGATION
-       ========================================================= */
-
+    // --- UI NAVIGATION ---
     function toggleSidebar() {
         document.getElementById('sidebar').classList.toggle('open');
         document.getElementById('mobileOverlay').classList.toggle('active');
     }
 
-    // Tab Navigation Logic
     document.querySelectorAll('.nav-item').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            // Update buttons
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             e.target.classList.add('active');
             
-            // Update panels
             const targetId = e.target.getAttribute('data-target');
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             document.getElementById(targetId).classList.add('active');
             
-            // Close mobile sidebar
             if (window.innerWidth <= 768) toggleSidebar();
-            
-            // Re-render charts if navigating to tabs that hold them
-            if (targetId === 'tab-dash' || targetId === 'tab-mock') {
-                App.renderCharts();
-            }
+            App.renderCharts();
         });
     });
 
-    // Dropdown population
     function updateSubjectOptions(examSelectId, subjectSelectId) {
-        const exam = document.getElementById(examSelectId).value;
-        const subSelect = document.getElementById(subjectSelectId);
-        subSelect.innerHTML = Subjects[exam].map(sub => `<option value="${sub}">${sub}</option>`).join('');
+        try {
+            const exam = document.getElementById(examSelectId).value;
+            const subSelect = document.getElementById(subjectSelectId);
+            if (Subjects[exam] && subSelect) {
+                subSelect.innerHTML = Subjects[exam].map(sub => `<option value="${sub}">${sub}</option>`).join('');
+            }
+        } catch(e) { console.error("Dropdown error:", e); }
     }
 
-    /* =========================================================
-       APPLICATION LOGIC (THE "APP" MODULE)
-       ========================================================= */
-
+    // --- MAIN LOGIC ---
     const App = {
-        
-        // --- Timer Initialization ---
         initTimer: () => {
-            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            try {
+                // Safe date fetch
+                document.getElementById('currentDateDisplay').innerText = new Date().toDateString();
+            } catch(e) {}
             
-            const targetDate = new Date(2027, 4, 23).getTime(); // May 23, 2027 (Month is 0-indexed: 4 = May)
-            
+            const targetDate = new Date(2027, 4, 23).getTime(); 
             const calculateTime = () => {
                 const now = new Date().getTime();
                 const diff = targetDate - now;
@@ -416,4 +226,86 @@
                 const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
                 const m = Math.floor((diff / 1000 / 60) % 60);
-                document.getElementById('countdownDisplay').innerText = `${d}d ${h}h 
+                document.getElementById('countdownDisplay').innerText = `${d}d ${h}h ${m}m`;
+            };
+            calculateTime();
+            setInterval(calculateTime, 60000);
+        },
+
+        addTask: () => {
+            try {
+                const text = document.getElementById('taskInput').value.trim();
+                const subject = document.getElementById('taskSubject').value;
+                if (!text) return;
+
+                State.tasks.push({ text, subject, done: false, id: Date.now() });
+                DB.set('upsc_tasks', State.tasks);
+                document.getElementById('taskInput').value = '';
+                App.renderTasks();
+                App.renderCharts();
+            } catch(e) { alert("Error adding task: " + e.message); }
+        },
+
+        toggleTask: (id) => {
+            const task = State.tasks.find(t => t.id === id);
+            if (task) { task.done = !task.done; DB.set('upsc_tasks', State.tasks); App.renderTasks(); }
+        },
+
+        deleteTask: (id) => {
+            State.tasks = State.tasks.filter(t => t.id !== id);
+            DB.set('upsc_tasks', State.tasks);
+            App.renderTasks();
+            App.renderCharts();
+        },
+
+        renderTasks: () => {
+            const list = document.getElementById('taskList');
+            list.innerHTML = State.tasks.map(t => `
+                <div class="list-item">
+                    <div style="display:flex; align-items:center; gap:10px; ${t.done ? 'opacity:0.5; text-decoration:line-through;' : ''}">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="App.toggleTask(${t.id})">
+                        <span><span class="badge">${t.subject}</span> ${t.text}</span>
+                    </div>
+                    <button class="btn-icon" onclick="App.deleteTask(${t.id})">✕</button>
+                </div>
+            `).join('');
+
+            const completed = State.tasks.filter(t => t.done).length;
+            document.getElementById('taskStat').innerText = `${completed} / ${State.tasks.length}`;
+        },
+
+        renderCharts: () => {
+            try {
+                const taskCtx = document.getElementById('taskChart');
+                if (taskCtx && window.getComputedStyle(taskCtx.parentElement.parentElement).display !== 'none') {
+                    if (chartInstances.task) chartInstances.task.destroy();
+                    const subjs = {};
+                    State.tasks.forEach(t => subjs[t.subject] = (subjs[t.subject] || 0) + 1);
+                    chartInstances.task = new Chart(taskCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(subjs).length ? Object.keys(subjs) : ['None'],
+                            datasets: [{ data: Object.keys(subjs).length ? Object.values(subjs) : [1], backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#1e293b'], borderWidth: 0 }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#f8fafc' } } } }
+                    });
+                }
+            } catch(e) { console.error("Chart Error", e); }
+        },
+
+        boot: () => {
+            updateSubjectOptions('taskExam', 'taskSubject');
+            App.initTimer();
+            App.renderTasks();
+            App.renderCharts();
+        }
+    };
+
+    // Safe Bootloader
+    document.addEventListener('DOMContentLoaded', () => {
+        try { App.boot(); } 
+        catch(e) { document.getElementById('countdownDisplay').innerText = "Boot Error: " + e.message; }
+    });
+</script>
+</body>
+</html>
