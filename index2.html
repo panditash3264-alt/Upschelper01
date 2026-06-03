@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5; --primary-hover: #4338ca; --primary-light: #e0e7ff;
+            --bg-body: #f1f5f9; --surface: #ffffff; --text-main: #0f172a; --text-muted: #64748b;
+            --border: #cbd5e1; --accent: #10b981; --danger: #ef4444; --warning: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+        
+        /* --- APP BAR & HAMBURGER MENU --- */
+        .app-bar {
+            background: var(--surface); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;
+        }
+        .app-bar h1 { font-size: 1.5rem; color: var(--text-main); }
+        .app-bar h1 span { color: var(--primary); }
+        
+        .menu-btn {
+            background: transparent; border: none; font-size: 1.8rem; color: var(--primary); cursor: pointer;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed; top: 0; left: -300px; width: 260px; height: 100vh; background: var(--surface);
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1); transition: 0.3s ease; z-index: 200; padding: 2rem 1rem;
+            display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .sidebar.open { left: 0; }
+        .close-btn { align-self: flex-end; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; margin-bottom: 1rem; color: var(--text-muted); }
+        .nav-btn {
+            background: transparent; border: none; padding: 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-muted); text-align: left; font-size: 1.1rem;
+        }
+        .nav-btn.active { background: var(--primary-light); color: var(--primary); }
+        
+        /* Overlay */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4);
+            display: none; z-index: 150;
+        }
+        .overlay.active { display: block; }
+
+        /* --- MAIN CONTENT & VIEWS --- */
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; width: 100%; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeUp 0.3s ease-out; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* --- CARDS & INPUTS --- */
+        .card { background: var(--surface); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .card h2 { font-size: 1.25rem; margin-bottom: 1.2rem; color: var(--primary); border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+        input, select, textarea { flex: 1; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; outline: none; background: var(--bg-body); min-width: 120px; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background: var(--surface); }
+        button.action-btn { padding: 0.8rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+        button.action-btn:hover { background: var(--primary-hover); }
+        .delete-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
+        .delete-btn:hover { color: var(--danger); }
+        
+        /* --- LAYOUTS --- */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        .list-item { padding: 1rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.8rem; border-left: 4px solid var(--primary); background: var(--surface); }
+        
+        /* --- BADGES & TIMERS --- */
+        .badge { background: var(--primary-light); color: var(--primary-hover); padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .timer-box { background: var(--primary-light); padding: 1.5rem; border-radius: 8px; text-align: center; margin-bottom: 1rem; border: 1px solid #c7d2fe; }
+        .time-display { font-size: 1.8rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; }
+        
+        /* --- TASK SYSTEM STYLES --- */
+        .task-category-title { font-size: 1rem; font-weight: 700; color: var(--text-main); margin: 1.5rem 0 0.5rem 0; text-transform: uppercase; letter-spacing: 1px; }
+        .task-subject-badge { font-size: 0.75rem; background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; margin-right: 8px; }
+        .task-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .task-checkbox { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); }
+        
+        /* --- GRAPH CONTAINERS --- */
+        .chart-container { position: relative; height: 250px; width: 100%; margin-top: 1rem; }
+    </style>
+</head>
+<body>
+
+    <!-- TOP APP BAR -->
+    <div class="app-bar">
+        <h1>UPSC <span>Command</span></h1>
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    </div>
+
+    <!-- SIDEBAR OVERLAY & MENU -->
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+    <div class="sidebar" id="sidebar">
+        <button class="close-btn" onclick="toggleMenu()">✖</button>
+        <button class="nav-btn active" onclick="switchTab('tab-dash', this)">📊 Dashboard & Tasks</button>
+        <button class="nav-btn" onclick="switchTab('tab-perf', this)">📈 Performance Graphs</button>
+        <button class="nav-btn" onclick="switchTab('tab-ca', this)">📰 Current Affairs</button>
+        <button class="nav-btn" onclick="switchTab('tab-mock', this)">📝 Mock Tests</button>
+        <button class="nav-btn" onclick="switchTab('tab-rev', this)">🧠 Revision</button>
+    </div>
+
+    <div class="container">
+        
+        <!-- ========================================== -->
+        <!-- VIEW 1: DASHBOARD & HIERARCHICAL TASKS     -->
+        <!-- ========================================== -->
+        <div id="tab-dash" class="view-section active">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>⏳ Target Countdowns</h2>
+                    <div class="timer-box"><div id="t-pre" class="time-display">Loading...</div><small>Prelims</small></div>
+                    <div class="timer-box"><div id="t-main" class="time-display">Loading...</div><small>Mains</small></div>
+                </div>
+
+                <div class="card">
+                    <h2>🎯 Add Study Target</h2>
+                    <div class="input-group">
+                        <select id="task-exam" onchange="updateSubjectDropdown()">
+                            <option value="Prelims">Prelims Target</option>
+                            <option value="Mains">Mains Target</option>
+                        </select>
+                        <select id="task-subject">
+                            <!-- Populated via JavaScript based on Prelims/Mains selection -->
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="task-in" placeholder="Specific topic or chapter...">
+                        <button class="action-btn" onclick="addTask()">Add Target</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Lists -->
+            <div class="card">
+                <h2>📋 Today's Master Checklist</h2>
+                <div id="task-list-container">
+                    <!-- Tasks will render here grouped by Prelims and Mains -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: PERFORMANCE GRAPHS                 -->
+        <!-- ========================================== -->
+        <div id="tab-perf" class="view-section">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>📈 Mock Test Scores (Trend)</h2>
+                    <div class="chart-container">
+                        <canvas id="mockTrendChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>🎯 Task Completion by Exam</h2>
+                    <div class="chart-container">
+                        <canvas id="taskPieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: CURRENT AFFAIRS                    -->
+        <!-- ========================================== -->
+        <div id="tab-ca" class="view-section">
+            <div class="card">
+                <h2>📰 Log Current Affair</h2>
+                <div class="input-group">
+                    <input type="text" id="ca-title" placeholder="Headline">
+                    <select id="ca-paper" style="flex:0.3"><option>GS1</option><option>GS2</option><option>GS3</option><option>GS4</option><option>Pre</option></select>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="ca-tags" placeholder="Tags (e.g. #Polity)">
+                    <button class="action-btn" onclick="addCA()">Save Log</button>
+                </div>
+            </div>
+            <div id="ca-list"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: MOCK TESTS                         -->
+        <!-- ========================================== -->
+        <div id="tab-mock" class="view-section">
+            <div class="card">
+                <h2>📝 Log Mock Test</h2>
+                <div class="input-group">
+                    <input type="text" id="m-name" placeholder="Test Name (e.g., Vision Test 1)">
+                    <select id="m-type" style="flex:0.4"><option>Prelims GS</option><option>Prelims CSAT</option><option>Mains GS</option><option>Anthropology Optional</option></select>
+                    <input type="number" id="m-score" placeholder="Score" style="flex:0.3">
+                </div>
+                <div class="input-group">
+                    <textarea id="m-journal" placeholder="Mistakes Journal (What went wrong?)..."></textarea>
+                    <button class="action-btn" onclick="addMock()">Save Test</button>
+                </div>
+            </div>
+            <div id="mock-list"></div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 5: REVISION SCHEDULE                  -->
+        <!-- ========================================== -->
+        <div id="tab-rev" class="view-section">
+            <div class="card">
+                <h2>🧠 Schedule Spaced Repetition</h2>
+                <div class="input-group">
+                    <input type="text" id="r-topic" placeholder="Topic finished today">
+                    <input type="date" id="r-date">
+                    <button class="action-btn" onclick="addRev()">Schedule</button>
+                </div>
+            </div>
+            <div id="rev-list"></div>
+        </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC                           -->
+    <!-- ========================================== -->
+    <script>
+        // --- 0. DATA STORAGE UTILITY ---
+        const store = {
+            get: (k, def) => JSON.parse(localStorage.getItem(k)) || def,
+            set: (k, v) => localStorage.setItem(k, JSON.stringify(v))
+        };
+
+        // --- 1. SIDEBAR NAVIGATION LOGIC ---
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+
+        function switchTab(id, btn) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+            toggleMenu(); // Close sidebar on mobile after clicking
+            
+            // Re-render charts if performance tab is clicked to ensure correct sizing
+            if(id === 'tab-perf') renderCharts();
+        }
+
+        // --- 2. TIMERS ---
+        const examDates = { pre: new Date("May 30, 2027").getTime(), main: new Date("Sep 15, 2027").getTime() };
+        setInterval(() => {
+            const now = new Date().getTime();
+            ['pre', 'main'].forEach(key => {
+                const diff = examDates[key] - now;
+                document.getElementById(`t-${key}`).innerText = diff < 0 ? "Exam Day!" : 
+                    `${Math.floor(diff/(1000*60*60*24))}d ${Math.floor((diff/(1000*60*60))%24)}h`;
+            });
+        }, 1000);
+
+        // --- 3. HIERARCHICAL TASK SYSTEM ---
+        const subjects = {
+            Prelims: ["Polity", "Economics", "History (Modern)", "History (Medieval)", "History (Ancient)", "Geography", "Science and Tech", "Mapping", "CSAT"],
+            Mains: ["GS 1", "GS 2", "GS 3", "GS 4", "Ethics", "Essay", "Anthropology (Optional)"]
+        };
+
+        function updateSubjectDropdown() {
+            const exam = document.getElementById('task-exam').value;
+            const subSelect = document.getElementById('task-subject');
+            subSelect.innerHTML = subjects[exam].map(sub => `<option value="${sub}">${sub}</option>`).join('');
+        }
+        updateSubjectDropdown(); // Init on load
+
+        let tasks = store.get('up_tasks_v2', []); // Using new key to avoid conflict with old data structure
+        
+        function renderTasks() {
+            const container = document.getElementById('task-list-container');
+            container.innerHTML = '';
+            
+            if(tasks.length === 0) {
+                container.innerHTML = '<p style="color:var(--text-muted)">No targets set for today. Add one above!</p>';
+                return;
+            }
+
+            // Group tasks by Exam -> Subject
+            const grouped = { Prelims: [], Mains: [] };
+            tasks.forEach((t, i) => grouped[t.exam].push({...t, originalIndex: i}));
+
+            ['Prelims', 'Mains'].forEach(exam => {
+                if(grouped[exam].length > 0) {
+                    container.innerHTML += `<div class="task-category-title" style="color: ${exam === 'Prelims' ? '#3b82f6' : '#8b5cf6'}">${exam} Targets</div>`;
+                    
+                    grouped[exam].forEach(t => {
+                        container.innerHTML += `
+                            <div class="list-item" style="display:flex; justify-content:space-between; align-items:center; opacity: ${t.done ? '0.6' : '1'};">
+                                <div class="task-row" onclick="toggleTask(${t.originalIndex})">
+                                    <input type="checkbox" class="task-checkbox" ${t.done ? 'checked' : ''} onclick="event.stopPropagation(); toggleTask(${t.originalIndex})">
+                                    <span style="${t.done ? 'text-decoration:line-through; color:var(--text-muted)' : ''}">
+                                        <span class="task-subject-badge">${t.subject}</span> ${t.txt}
+                                    </span>
+                                </div>
+                                <button class="delete-btn" onclick="deleteTask(${t.originalIndex})">✖</button>
+                            </div>
+                        `;
+                    });
+                }
+            });
+            renderCharts(); // Update pie chart dynamically
+        }
+
+        function addTask() {
+            const exam = document.getElementById('task-exam').value;
+            const subject = document.getElementById('task-subject').value;
+            const txt = document.getElementById('task-in').value.trim();
+            
+            if(txt) { 
+                tasks.push({exam, subject, txt, done: false}); 
+                store.set('up_tasks_v2', tasks); 
+                document.getElementById('task-in').value=''; 
+                renderTasks(); 
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].done = !tasks[index].done;
+            store.set('up_tasks_v2', tasks);
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            store.set('up_tasks_v2', tasks);
+            renderTasks();
+        }
+        renderTasks();
+
+        // --- 4. CURRENT AFFAIRS ---
+        let cas = store.get('up_cas', []);
+        const renderCAs = () => {
+            document.getElementById('ca-list').innerHTML = cas.map((ca, i) => `
+                <div class="list-item">
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong><span class="badge">${ca.p}</span> ${ca.t}</strong>
+                        <button class="delete-btn" onclick="cas.splice(${i},1); store.set('up_cas', cas); renderCAs()">✖</button>
+                    </div>
+                    <small style="color:var(--text-muted)">${ca.tags}</small>
+                </div>
+            `).reverse().join('');
+        };
+        function addCA() {
+            const t = document.getElementById('ca-title').value, p = document.getElementById('ca-paper').value, tags = document.getElementById('ca-tags').value;
+            if(t) { cas.push({t, p, tags}); store.set('up_cas', cas); document.getElementById('ca-title').value=''; document.getElementById('ca-tags').value=''; renderCAs(); }
+        }
+        renderCAs();
+
+        // --- 5. MOCKS & GRAPHS ---
+        let mocks = store.get('up_mocks', []);
+        
+        // Setup Chart Instances
+        let trendChartInstance = null;
+        let pieChartInstance = null;
+
+        function renderCharts() {
+            // 1. Line Chart for Mock Scores
+            const ctxLine = document.getElementById('mockTrendChart').getContext('2d');
+            
+            // Extract data for chart
+            const labels = mocks.map((m, i) => `Test ${i+1}`);
+            const prelimsScores = mocks.map(m => m.type.includes('Prelims') ? parseInt(m.score) : null);
+            const mainsScores = mocks.map(m => m.type.includes('Mains') || m.type.includes('Anthropology') ? parseInt(m.score) : null);
+
+            if(trendChartInstance) trendChartInstance.destroy(); // Clear old chart
+            
+            trendChartInstance = new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: labels.length > 0 ? labels : ['No Data'],
+                    datasets: [
+                        { label: 'Prelims Scores', data: prelimsScores, borderColor: '#3b82f6', tension: 0.3, spanGaps: true },
+                        { label: 'Mains/Optional Scores', data: mainsScores, borderColor: '#8b5cf6', tension: 0.3, spanGaps: true }
+                    ]
+                },
+                options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+
+            // 2. Pie Chart for Tasks Completion
+            const ctxPie = document.getElementById('taskPieChart').getContext('2d');
+            const preDone = tasks.filter(t => t.exam === 'Prelims' && t.done).length;
+            const mainDone = tasks.filter(t => t.exam === 'Mains' && t.done).length;
+            const pending = tasks.filter(t => !t.done).length;
+
+            if(pieChartInstance) pieChartInstance.destroy();
+
+            pieChartInstance = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Prelims Done', 'Mains Done', 'Pending Tasks'],
+                    datasets: [{
+                        data: tasks.length > 0 ? [preDone, mainDone, pending] : [0,0,1], // placeholder if empty
+                        backgroundColor: ['#3b82f6', '#8b5cf6', '#e2e8f0']
+                    }]
+                },
+                options: { maintainAspectRatio: false, cutout: '70%' }
+            });
+        }
+
+        const renderMocks = () => {
+            document.getElementById('mock-list').innerHTML = mocks.map((m, i) => `
+                <div class="list-item" style="border-left-color:var(--warning)">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                        <strong><span class="badge" style="background:#fef3c7; color:#b45309">${m.type}</span> ${m.name}</strong>
+                        <span>Score: <b style="color:var(--primary); font-size:1.1rem">${m.score}</b> <button class="delete-btn" style="margin-left:10px" onclick="mocks.splice(${i},1); store.set('up_mocks', mocks); renderMocks()">✖</button></span>
+                    </div>
+                    <p style="font-size:0.9rem; color:var(--text-muted); background:var(--bg-body); padding:8px; border-radius:4px;">${m.j}</p>
+                </div>
+            `).reverse().join('');
+            renderCharts(); // Update graph when mock is added/deleted
+        };
+
+        function addMock() {
+            const n = document.getElementById('m-name').value, t = document.getElementById('m-type').value, s = document.getElementById('m-score').value, j = document.getElementById('m-journal').value;
+            if(n && s) { 
+                mocks.push({name:n, type:t, score:s, j}); 
+                store.set('up_mocks', mocks); 
+                document.getElementById('m-name').value=''; document.getElementById('m-score').value=''; document.getElementById('m-journal').value=''; 
+                renderMocks(); 
+            } else {
+                alert("Please enter a Test Name and Score.");
+            }
+        }
+        
+        // Initial Render
+        renderMocks(); 
+        
+        // --- 6. REVISION ---
+        let revs = store.get('up_revs', []);
+        document.getElementById('r-date').valueAsDate = new Date();
+        const addDays = (d, days) => { let nd = new Date(d); nd.setDate(nd.getDate() + days); return nd.toLocaleDateString(); };
+        
+        const renderRevs = () => {
+            document.getElementById('rev-list').innerHTML = revs.map((r, i) => `
+                <div class="list-item" style="border-left-color:#10b981">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <strong>${r.topic}</strong>
+                        <button class="delete-btn" onclick="revs.splice(${i},1); store.set('up_revs', revs); renderRevs()">✖</button>
+                    </div>
+                    <div style="display:flex; gap:15px; font-size:0.9rem; flex-wrap: wrap;">
+                        <label style="cursor:pointer; ${r.d7 ? 'text-decoration:line-through; color:var(--text-muted)' : ''}"><input type="checkbox" ${r.d7 ? 'checked' : ''} onclick="revs[${i}].d7=!revs[${i}].d7; store.set('up_revs', revs); renderRevs()"> 7-Day: ${r.t7}</label>
+                        <label style="cursor:pointer; ${r.d30 ? 'text-decoration:line-through; color:var(--text-muted)' : ''}"><input type="checkbox" ${r.d30 ? 'checked' : ''} onclick="revs[${i}].d30=!revs[${i}].d30; store.set('up_revs', revs); renderRevs()"> 30-Day: ${r.t30}</label>
+                    </div>
+                </div>
+            `).reverse().join('');
+        };
+        function addRev() {
+            const top = document.getElementById('r-topic').value, d = document.getElementById('r-date').value;
+            if(top && d) { revs.push({ topic:top, t7:addDays(d,7), d7:false, t30:addDays(d,30), d30:false }); store.set('up_revs', revs); document.getElementById('r-topic').value=''; renderRevs(); }
+        }
+        renderRevs();
+    </script>
+</body>
+</html>
